@@ -1,0 +1,75 @@
+This is BibTeX, Version 0.99d (TeX Live 2020)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: /Users/jaku/Desktop/CS 480/Assignments/A1 Package/My Solution/.texpadtmp/main.aux
+The style file: biblatex.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=200001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: main-blx.bib
+Database file #2: ../reference.bib
+You're missing a field name---line 3 of file ../reference.bib
+ : 
+ : %    author      = "Ed Sutton",
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Warning--entry type for "web:scikit:lasso" isn't style-file defined
+--line 9 of file ../reference.bib
+Warning--entry type for "web:scikit:ridge-regression" isn't style-file defined
+--line 13 of file ../reference.bib
+Biblatex version: 3.13
+Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+You've used 3 entries,
+            6365 wiz_defined-function locations,
+            1199 strings with 9242 characters,
+and the built_in function-call counts, 4824 in all, are:
+= -- 142
+> -- 182
+< -- 19
++ -- 163
+- -- 144
+* -- 107
+:= -- 533
+add.period$ -- 0
+call.type$ -- 3
+change.case$ -- 4
+chr.to.int$ -- 46
+cite$ -- 4
+duplicate$ -- 412
+empty$ -- 587
+format.name$ -- 0
+if$ -- 1019
+int.to.chr$ -- 0
+int.to.str$ -- 2
+missing$ -- 0
+newline$ -- 37
+num.names$ -- 0
+pop$ -- 695
+preamble$ -- 1
+purify$ -- 4
+quote$ -- 0
+skip$ -- 203
+stack$ -- 0
+substring$ -- 177
+swap$ -- 108
+text.length$ -- 38
+text.prefix$ -- 0
+top$ -- 1
+type$ -- 88
+warning$ -- 0
+while$ -- 70
+width$ -- 0
+write$ -- 35
+(There was 1 error message)
