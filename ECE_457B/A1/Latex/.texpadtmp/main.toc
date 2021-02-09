@@ -1,0 +1,6 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\contentsline {section}{\numberline {1}Problem 1: Perceptron}{1}{section.0.1}%
+\contentsline {section}{\numberline {2}Problem 2: Madaline}{2}{section.0.2}%
+\contentsline {section}{\numberline {3}Problem 3: BPL}{3}{section.0.3}%
+\contentsline {section}{\numberline {4}Problem 4: Neural Network Classifier}{4}{section.0.4}%
+\contentsline {section}{Glossary}{5}{section*.3}%

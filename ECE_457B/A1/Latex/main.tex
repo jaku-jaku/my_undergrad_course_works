@@ -1,0 +1,196 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                                Settings                                * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{tron}
+
+\loadglsentries{gls}
+\glsaddall
+\addbibresource{reference}
+\usepackage{xcolor}  % Coloured text etc.
+% fancy note style
+\input{Styles/style_note}
+%\input{Styles/style_comments}
+\input{Styles/style_engineer}
+\input{Styles/style_math}
+
+% extra mod
+\newcommand{\mref}[1]{\underline{\textbf{\hypersetup{linkcolor=orange}\Cref{#1}\hypersetup{linkcolor=blue}}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make sure the following block contains the correct information               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\reporttitle{ECE 457B - Assignment 1}
+% \selfstudy % comment this line if this is not a self study report 
+% \employername{Employer Name}
+% \employerstreetaddress{Employer Address}
+% \employerlocation{City, Provice, Country}
+\university{University of Waterloo}
+\faculty{Faculty of Engineering}%Faculty of Engineering
+\department{}%Department of Systems Design Engineering
+\groupnumber{1}
+\authornameA{Jianxiang (Jack) Xu}
+\studentnumberA{20658861}
+\reportdate{\today}
+%\confidential{1} % comment this line if this is not a confidential report
+%\authorstreetaddress{##}
+%\authorlocation{##}
+%\authorpostalcode{##}
+\useheader % comment this line if no need for header
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% end of information block...                                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                               Title Page                               * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                           Table of Contents                            * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                            List of Figures                             * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \listoffigures
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                             List of Tables                             * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \listoftables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                              MAIN BODY                                 * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\setlength{\parskip}{5pt}
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Intro.  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%
+%%%%% Ex 1 %%%%%
+%%%%%%%%%%%%%%%%
+\newpage
+\section{Problem 1: Perceptron}
+\vspace{5pt}
+
+
+
+\textbf{a) (5 marks) Using chain differentiation rule as seen in the lectures and derive the weight update formulae Dw i for this special Adaline structure and show that it is given by :}
+
+\TODO{TODO: type out from the ipad}
+
+\textbf{b) (5 marks) Write two small programs implementing the weight update rule for the perceptron and the Adaline for an arbitrary number of input (dimension of input x) and arbitrary training patterns. Initial values for the weights could be selected randomly in the interval [-1 1].}
+
+\TODO{TODO: python}
+
+\textbf{c) (10 marks) We need to classify the following patterns using boundaries obtained from the perceptron and the Adaline.}
+% These data points are located in 3D space and the first component x 0 of each vector is the artificial input associated with w 0 , which plays the role of the bias term ( -q ). The remaining entries of the vector are the actual location of the data point in 3D space.
+%Class “C1=0” (x1 =[-1, 0.8, 0.7, 1.2] , x2 =[-1, -0.8,- 0.7, 0.2], x3 =[-1, -0.5,0.3,- 0.2],
+%x4 =[-1, -2.8, -0.1, -2])
+%Class “C2=1” (y1 =[-1, 1.2,- 1.7, 2.2] , y2 =[-1, -0.8,-2, 0.5], y3 =[-1, -0.5,-2.7,- 1.2],
+%y4 =[-1, 2.8, -1.4, 2.1])
+%If you are able to separate these classes, provide the equation of the boundaries in the case of the perceptron and the case of the Adaline. Draw, the data points of the two classes, and the corresponding boundaries in 3D Cartesian space (remember the first entry of each vector, is not part of the coordinate of the data point in 3D). Use the value of h as 0.6
+
+\TODO{TODO: use python in b) to solve}
+
+\textbf{d) (2 marks) We need to place a new data point belonging to “C1” in the location x5 =[-1.4,- 1.5, 2]. Is the classifier boundary still valid (for both perceptron and Adaline)}
+
+\TODO{TODO: use python in b) to solve}
+
+\textbf{e) (3 marks) State, why an Adaline structure with LMS learning algorithm has better capabilities than the perceptron Hebbian learning rule.}
+
+
+They are different from the loss function, one with LMS and one with Hebbian learning rule. 
+%https://www.quora.com/What-is-the-difference-between-a-Perceptron-Adaline-and-neural-network-model
+
+Unlike Perceptron, the iterations of Adaline networks do not stop, but it converges by reducing the least mean square error. MADALINE is a network of more than one ADALINE
+%https://www.softwaretestinghelp.com/neural-network-learning-rules/
+
+Hence, perceptron may stop with an arbitrary hyperplane depending on the order of the sampled point, whereas adaline will result an optimal hyperplane, where its margin is the best possible geometrical plane. Since adaline utilizes the gradient decent with mean squared error, it will result a hyperplane that has the margin same as the best possible geometrical margin. In comparison, perceptron would result a bad margin with an arbitrary hyperplane, resulting non-ideal hyperplane, leading to a bias to a specific class.
+
+% use an image with hyperplane of perceptron vs. adaline
+
+
+%%%%%%%%%%%%%%%%
+%%%%% Ex 2 %%%%%
+%%%%%%%%%%%%%%%%
+\newpage
+\section{Problem 2: Madaline}
+\vspace{5pt}
+\textbf{Build a Madaline structure that is able to provide a compounded boundary (composed of two elementary boundaries) for the Exclusive Nor logic (XNOR) gate with two inputs. Draw the boundary in a 2D cartesian plot and show that the obtained compounded boundary (composed of two boundaries) is able to separate the two output classes (1 and -1).}
+
+
+
+%%%%%%%%%%%%%%%%
+%%%%% Ex 3 %%%%%
+%%%%%%%%%%%%%%%%
+\newpage
+\section{Problem 3: BPL}
+\vspace{5pt}
+
+
+
+%%%%%%%%%%%%%%%%
+%%%%% Ex 4 %%%%%
+%%%%%%%%%%%%%%%%
+\newpage
+\section{Problem 4: Neural Network Classifier}
+\vspace{5pt}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                      TODO [Remove For Final Copy!]                     * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\printlistoftodos
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                                Glossary                                * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\printglossaries
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                               References                               * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \printbibliography[heading=none]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                               Appendices                               * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% appendices use section and subsection numbering
+\clearpage
+\appendix
+\begin{appendices}
+% INPUT UR APPENDIX
+\end{appendices}
+
+\end{document}
+
+
