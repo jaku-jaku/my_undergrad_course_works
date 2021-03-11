@@ -1,6 +1,6 @@
 This is BibTeX, Version 0.99d (TeX Live 2020)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
-The top-level auxiliary file: /Users/jaku/Desktop/CS 480/Assignments/A1 Package/My Solution/.texpadtmp/main.aux
+The top-level auxiliary file: /Users/jaku/JX-Platform/Github/UW__4B_Individual_Works/CS 480/A1 Package/My Solution/.texpadtmp/main.aux
 The style file: biblatex.bst
 Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
 Reallocated global_strs (elt_size=200001) to 20 items from 10.
@@ -33,7 +33,7 @@ Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 You've used 3 entries,
             6365 wiz_defined-function locations,
-            1199 strings with 9242 characters,
+            1199 strings with 9288 characters,
 and the built_in function-call counts, 4824 in all, are:
 = -- 142
 > -- 182

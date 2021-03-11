@@ -506,7 +506,7 @@
 }
 %Code listing style named "mystyle"
 \lstdefinestyle{mystyle:output}{
-  backgroundcolor=\color{backcolourWhite},   commentstyle=\color{codegreen},
+  backgroundcolor=\color{white},   commentstyle=\color{codegreen},
   keywordstyle=\color{magenta},
   numberstyle=\tiny\color{codegray},
   stringstyle=\color{codepurple},

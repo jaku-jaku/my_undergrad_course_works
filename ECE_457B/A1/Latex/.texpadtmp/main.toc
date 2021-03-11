@@ -1,6 +1,22 @@
 \boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
-\contentsline {section}{\numberline {1}Problem 1: Perceptron}{1}{section.0.1}%
-\contentsline {section}{\numberline {2}Problem 2: Madaline}{2}{section.0.2}%
-\contentsline {section}{\numberline {3}Problem 3: BPL}{3}{section.0.3}%
-\contentsline {section}{\numberline {4}Problem 4: Neural Network Classifier}{4}{section.0.4}%
-\contentsline {section}{Glossary}{5}{section*.3}%
+\contentsline {section}{\numberline {1}Problem 1: Perceptron [Full Implementation: \Cref {code:p1}]}{1}{section.0.1}%
+\contentsline {subsection}{\numberline {1.1}(a): Derivation of $\Delta w_i$ (5 marks)}{1}{subsection.0.1.1}%
+\contentsline {subsection}{\numberline {1.2}(b): Programs}{3}{subsection.0.1.2}%
+\contentsline {subsection}{\numberline {1.3}(c): Training Result}{5}{subsection.0.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}Perceptron Training Result}{5}{subsubsection.0.1.3.1}%
+\contentsline {subsubsection}{\numberline {1.3.2}Adaline Training Result}{6}{subsubsection.0.1.3.2}%
+\contentsline {subsection}{\numberline {1.4}(d) Test Data}{7}{subsection.0.1.4}%
+\contentsline {subsection}{\numberline {1.5}(e) Why Adaline has better capabilities than perceptron in terms of learning rule}{8}{subsection.0.1.5}%
+\contentsline {section}{\numberline {2}Problem 2: Madaline [Full Implementation: \Cref {code:p2}]}{9}{section.0.2}%
+\contentsline {section}{\numberline {3}Problem 3: BPL [Full Implementation: \Cref {code:p3}]}{10}{section.0.3}%
+\contentsline {subsection}{\numberline {3.1}(a) Hyperparameter Tuning}{10}{subsection.0.3.1}%
+\contentsline {subsection}{\numberline {3.2}(b \& c) Observations and Best Fitting Results }{12}{subsection.0.3.2}%
+\contentsline {subsection}{\numberline {3.3}(c*) Further Conclusion}{15}{subsection.0.3.3}%
+\contentsline {section}{\numberline {4}Problem 4: Neural Network Classifier [Full Implementation: \Cref {code:p4}]}{16}{section.0.4}%
+\contentsline {subsection}{\numberline {4.1}MLP Classifier Training Result}{16}{subsection.0.4.1}%
+\contentsline {subsection}{\numberline {4.2}Classification Test Result }{19}{subsection.0.4.2}%
+\renewcommand \l@section {\@dottedtocline {2}{0em}{6em}}
+\contentsline {section}{\numberline {Appendix A}P1 - Code}{20}{section.1..1}%
+\contentsline {section}{\numberline {Appendix B}P2 - Code}{24}{section.1..2}%
+\contentsline {section}{\numberline {Appendix C}P3 - Code}{25}{section.1..3}%
+\contentsline {section}{\numberline {Appendix D}P4 - Code}{30}{section.1..4}%

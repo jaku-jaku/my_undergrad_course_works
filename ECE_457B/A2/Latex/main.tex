@@ -1,0 +1,705 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                                Settings                                * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{tron}
+
+\loadglsentries{gls}
+\glsaddall
+\addbibresource{reference}
+\usepackage{xcolor}  % Coloured text etc.
+% fancy note style
+\input{Styles/style_note}
+%\input{Styles/style_comments}
+\input{Styles/style_engineer}
+\input{Styles/style_math}
+
+% extra mod
+\newcommand{\mref}[1]{\underline{\textbf{\hypersetup{linkcolor=orange}\Cref{#1}\hypersetup{linkcolor=blue}}}}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{color, colortbl}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make sure the following block contains the correct information               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\reporttitle{ECE 457B - Assignment 2}
+% \selfstudy % comment this line if this is not a self study report 
+% \employername{Employer Name}
+% \employerstreetaddress{Employer Address}
+% \employerlocation{City, Provice, Country}
+\university{University of Waterloo}
+\faculty{Faculty of Engineering}%Faculty of Engineering
+\department{}%Department of Systems Design Engineering
+\groupnumber{1}
+\authornameA{Jianxiang (Jack) Xu}
+\studentnumberA{20658861}
+\reportdate{\today}
+%\confidential{1} % comment this line if this is not a confidential report
+%\authorstreetaddress{##}
+%\authorlocation{##}
+%\authorpostalcode{##}
+\useheader % comment this line if no need for header
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% end of information block...                                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                               Title Page                               * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                           Table of Contents                            * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                            List of Figures                             * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \listoffigures
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                             List of Tables                             * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \listoftables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                              MAIN BODY                                 * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\setlength{\parskip}{5pt}
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Intro.  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%
+%%%%% Ex 1 %%%%%
+%%%%%%%%%%%%%%%%
+\newpage
+\section{Problem 1: Nonlinear Classifier (SVM) [\Cref{code:p1}]}
+%{
+%	We need to build a machine learning model to predict whether a patient in the a community has diabetes or not. The members of the community data has been included in a dataset (PIMA Indians Diabetes Database) originating from the National Institute of Diabetes and Digestive and Kidney Diseases. The datasets consists of several medical predictor variables and one target variable (whether you have diabetes or not). Based on certain diagnostic measurements included in the dataset, the objective is to diagnostically predict whether or not a patient has diabetes.
+%	
+%	Choose a classifier of your choice to solve the problem (MLP, SVM or others).
+%	
+%	1. (15 marks) Change the parameters of your classifier and provide a confusion matrix for each of the various classifiers (change C-parameters and kernels for SVM or number of nodes for MLP).
+%	
+%	2. (15 marks) Write the various performance measure in terms of Accuracy, Precision, Recall, and F1 Measure. Which performance measure is most important in this problem? Why?
+%	
+%	Note 1 : Those of you using SVM classifier, investigate for some values for the slack parameter C (seen on slide 16 of the notes) such as {0.1, 1, 10} and use a linear or non-linear kernel to deal with nonlinear separability of the original data (slide 24 of SVM lectures).
+%	
+%	Note 2: Feel free to use Scikit-learn (especially for SVM) or other tools to develop your solution: https://scikit-learn.org/stable/.
+%}
+
+\subsection{(a): Parameter tuning and Confusion matrices (15 marks)}
+% 1. (15 marks) Change the parameters of your classifier and provide a confusion matrix for each of the various classifiers (change C-parameters and kernels for SVM or number of nodes for MLP).
+For this dataset, SVM is chosen to be studied. In order to tune the hyper parameters to find the best model for the dataset, a various combinations of C-parameters and kernels are evaluated for 5-fold cross validation. The 5-fold validation helps to ensure the integrity and stability of the model by comparing its worst, average, and best performance.
+
+\lstinputlisting[language=python, caption=SVM Hyper-parameters Setting, label=code:p1:settings, linerange={31-40}]{../src_code/as2_p1.py}
+
+The detailed implementation can be seen:
+\lstinputlisting[language=python, caption=SVM 10-Fold Hyper Tuning, label=code:p1:settings, linerange={123-192}]{../src_code/as2_p1.py}
+
+As a result, we may get a total of 90 confusion matrices for 16 sets of hyper-parameters and 5 trials each. They are as stated in \Cref{table:confusions:0} - \Cref{table:confusions:16} below:
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:linear-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:linear-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:linear-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:linear-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:linear-(5:5)]}} \,
+\caption{Confusion Matrices for C:0.1 K:linear 5-fold}
+\label{table:confusion:1}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:poly-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:poly-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:poly-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:poly-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:poly-(5:5)]}} \,
+\caption{Confusion Matrices for C:0.1 K:poly 5-fold}
+\label{table:confusion:2}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:rbf-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:rbf-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:rbf-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:rbf-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:rbf-(5:5)]}} \,
+\caption{Confusion Matrices for C:0.1 K:rbf 5-fold}
+\label{table:confusion:3}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:sigmoid-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:sigmoid-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:sigmoid-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:sigmoid-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:sigmoid-(5:5)]}} \,
+\caption{Confusion Matrices for C:0.1 K:sigmoid 5-fold}
+\label{table:confusion:4}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:linear-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:linear-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:linear-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:linear-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:linear-(5:5)]}} \,
+\caption{Confusion Matrices for C:1 K:linear 5-fold}
+\label{table:confusion:5}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:poly-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:poly-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:poly-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:poly-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:poly-(5:5)]}} \,
+\caption{Confusion Matrices for C:1 K:poly 5-fold}
+\label{table:confusion:6}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:rbf-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:rbf-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:rbf-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:rbf-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:rbf-(5:5)]}} \,
+\caption{Confusion Matrices for C:1 K:rbf 5-fold}
+\label{table:confusion:7}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:sigmoid-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:sigmoid-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:sigmoid-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:sigmoid-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:1-K:sigmoid-(5:5)]}} \,
+\caption{Confusion Matrices for C:1 K:sigmoid 5-fold}
+\label{table:confusion:8}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:linear-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:linear-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:linear-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:linear-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:linear-(5:5)]}} \,
+\caption{Confusion Matrices for C:5 K:linear 5-fold}
+\label{table:confusion:9}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:poly-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:poly-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:poly-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:poly-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:poly-(5:5)]}} \,
+\caption{Confusion Matrices for C:5 K:poly 5-fold}
+\label{table:confusion:10}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:rbf-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:rbf-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:rbf-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:rbf-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:rbf-(5:5)]}} \,
+\caption{Confusion Matrices for C:5 K:rbf 5-fold}
+\label{table:confusion:11}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:sigmoid-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:sigmoid-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:sigmoid-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:sigmoid-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:5-K:sigmoid-(5:5)]}} \,
+\caption{Confusion Matrices for C:5 K:sigmoid 5-fold}
+\label{table:confusion:12}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:linear-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:linear-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:linear-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:linear-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:linear-(5:5)]}} \,
+\caption{Confusion Matrices for C:10 K:linear 5-fold}
+\label{table:confusion:13}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:poly-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:poly-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:poly-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:poly-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:poly-(5:5)]}} \,
+\caption{Confusion Matrices for C:10 K:poly 5-fold}
+\label{table:confusion:14}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:rbf-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:rbf-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:rbf-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:rbf-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:rbf-(5:5)]}} \,
+\caption{Confusion Matrices for C:10 K:rbf 5-fold}
+\label{table:confusion:15}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:sigmoid-(1:5)]}} \,
+\subfloat[2:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:sigmoid-(2:5)]}} \,
+\subfloat[3:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:sigmoid-(3:5)]}} \,
+\subfloat[4:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:sigmoid-(4:5)]}} \,
+\subfloat[5:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:10-K:sigmoid-(5:5)]}} \,
+\caption{Confusion Matrices for C:10 K:sigmoid 5-fold}
+\label{table:confusion:16}
+\end{figure}
+
+\subsection{(b): Various performance measure (15 marks)}
+% 2. (15 marks) Write the various performance measure in terms of Accuracy, Precision, Recall, and F1 Measure. Which performance measure is most important in this problem? Why?
+
+The performance measure is calculated along with confusion matrices (full implementation can be found in \Cref{code:jx_lib}):
+\lstinputlisting[language=python, caption=SVM Performance Measure, label=code:p1:performance, linerange={90-98}]{../src_code/jx_lib.py}
+
+The average, best, and worst performance measures out of 5-fold cross-validation in terms of Accuracy, Precision, Recall, and F1 Measure are summarized in \Cref{table:performance-grid:avg}, \Cref{table:performance-grid:best}, and \Cref{table:performance-grid:worst} respectively.
+
+The recall measure is the most important in this problem, since we want to eliminate percent of false negative to ensure it is not missing any people who are indeed having diabetes. In another word, we need to maximizing percent of true positive over sum of true positive and false positive, which is the recall performance measure. In addition, the worst performance measure of the recall out of 5-Fold cross-validation shall be also considered when choosing the model, since we would always ensure the worst possible performance of the model. 
+
+\begin{figure}[H]
+\centering
+	\includegraphics[height=400px]{../src_code/output/p1/unmodified/Summary_unmodified_average}
+	\caption{Average performance grid matrices for all 16 combinations}
+	\label{table:performance-grid:avg}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+	\includegraphics[height=400px]{../src_code/output/p1/unmodified/Summary_unmodified_best}
+	\caption{Best performance grid matrices for all 16 combinations}
+	\label{table:performance-grid:best}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+	\includegraphics[height=400px]{../src_code/output/p1/unmodified/Summary_unmodified_worst}
+	\caption{Worst performance grid matrices for all 16 combinations}
+	\label{table:performance-grid:worst}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%
+%%%%% Ex 2 %%%%%
+%%%%%%%%%%%%%%%%
+\newpage
+\section{Problem 2: Kohonen Self Organizng Map: Unsupervised Learning [\Cref{code:p2}]}
+%{
+%	We need to design a Kohonen self organizing map (SOM), which gives as an output some shades of color mapped over 100 by 100 grid of neurones. The idea is to cluster colors of the same shade in the same neighborhood using 3D to 2D representation of colors. The training input of the SOM are 24 colors (use shades of red, green, blue, with some yellow, teal and pink) which you can chose from the "RGB Color Table: Basic Colors" section of this page: http://www.rapidtables.com/web/color/RGB_Color.htm
+%	
+%	Using a time varying learning rate
+%	
+%	a (k) = a (0)exp(-k /T)
+%	
+%	where k is the current training
+%	
+%	epoch (starts with epoch 0), 𝛼 ( 0 ) = 0.8 , and T is the Total number of training epochs equal to 600. Note that the epoch training involves all twenty four input samples for the 24 chosen colors to the network (hint: calibrate the color codes to values between 0 and 1, instead of being between 0 and 255). The initial weights linking to all 10,000 output nodes are randomized. Basically each node has an RGB color of three random values between ( 0 and 255, which should be normalized to between 0 and 1 in the same way we calibrate the training data as discussed earlier)
+% ..... (see pdf)
+%}
+\subsection{Implementation (Matrix Formulation and Optimization)}
+In order to optimize the performance and utilize the gpu performance, the update function is modelled and implemented in matrix forms, and any constant is being pre-computed in each iteration, as shown in \Cref{code:p2:opt}. 
+\lstinputlisting[language=python, caption=KSOM Core Update in Matrix Formulation, label=code:p2:opt, firstline=61, lastline=83]{../src_code/as2_p2.py}
+
+The final outcome is outstanding, where it only takes 37.8 seconds to compute, in comparison to the double for loop form, which takes minutes and even hours to compute.
+\begin{lstlisting}[style=mystyle:output]
+[Running] python -u "/Users/jaku/JX-Platform/Github/UW__4B_Individual_Works/ECE_457B/A2/src_code/as2_p2.py"
+ic| normRGB.shape: (24, 3)
+Epoch Number: 1
+Epoch Number: 20
+Epoch Number: 40
+Epoch Number: 100
+Epoch Number: 600
+Epoch Number: 1
+Epoch Number: 20
+Epoch Number: 40
+Epoch Number: 100
+Epoch Number: 600
+Epoch Number: 1
+Epoch Number: 20
+Epoch Number: 40
+Epoch Number: 100
+Epoch Number: 600
+
+[Done] exited with code=0 in 37.838 seconds
+\end{lstlisting}
+
+\subsection{(a): SOM Grids Result (25 marks)}
+% a) (25 marks) Basically, and after training, we need to have as the output of the SOM colors something similar to the picture below, where similar colors cluster around each other’s:
+% Generate, a figure of the original SOM grid (randomly selected) followed by figures of the SOM grid after 20, 40, 100, 600 epochs for various values of s 0 =10, 40,70 .
+
+\begin{figure}[H]
+	\center
+	\includegraphics[height=130px]{../src_code/output/p2/w_0}
+	\caption{Original SOM grid (random colors)}
+\end{figure}
+
+\begin{figure}[H]
+	\center
+	\includegraphics[height=50px]{../src_code/output/p2/color_bar}
+	\caption{24 randomly selected colors (from HSV wheel to RGB)}
+\end{figure}
+
+The resultant SOM grids are as stated in \Cref{table:som} below:
+\begin{longtable}{p{1cm} p{4.5cm} p{4.5cm} p{4.5cm}} \hline
+	%% Header
+	& \textbf{$\sigma_0 = 10$} & \textbf{$\sigma_0 = 40$} & \textbf{$\sigma_0 = 70$}
+	\\ \hline
+	%% Content
+	Epochs = 20 	
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=10]_w_20}} 
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=40]_w_20}} 
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=70]_w_20}} 
+	\\ \hline
+	Epochs = 40 	
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=10]_w_40}} 
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=40]_w_40}} 
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=70]_w_40}} 
+	\\ \hline
+	Epochs = 100 	
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=10]_w_100}} 
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=40]_w_100}} 
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=70]_w_100}} 
+	\\ \hline
+	Epochs = 600 	
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=10]_w_600}} 
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=40]_w_600}} 
+		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=70]_w_600}} 
+	\\ \hline
+	\caption{SOM grid summary table (T: 600 epochs)} % needs to go inside longtable environment
+	\label{table:som}
+\end{longtable}
+
+
+\subsection{(b): Conclusions (5 marks)}
+% b) (5 marks) In light of the above simulations, draw your conclusions?
+%. https://www.cs.hmc.edu/~kpang/nn/som.html
+The above implementation utilizes an adaptive neighboring, as the nrighborhood variance decreases overtime, resulting a smaller neighbor size. This is done to help neurons initially adjust their weights to roughly where they want to be then allow them to converge without being dramatically influenced by "winning" neurons that are far away. In another world, the early stage is the self-organizing or re-ordering phase, and the later stage is fine tuning phase to make the grid coverge.
+
+From the above simulation, we may find the SOM is capable to cluster progressively based on the given training dataset without any supervision. The initial variance of the topological neighborhood size ($\sigma_0$) affects the convergence rate of the SOM grid. A smaller initial variance converges slower (or stable equilibrium), but provides a much finer SOM grid with sharp boundaries, as shown by the column for $\sigma_0 = 10$. A larger variance converges much faster, but provides a coarser SOM grid with blended margins, as shown by the column for $\sigma_0 = 70$. We may find the medium variance of $\sigma_0 = 40$ between the two extremes provided the best outcome of the SOM grid, as it quickly reaches equilibrium initially, and provides a finer final SOM grid without loosing too much color resolution. 
+
+In short, the magical SOM performance depends on the initial neighbouring size for the adaptive neighborhood function (Gaussian specifically in our case). A large variance encourages a faster stability but uneven result. A smaller variance may cause the map incapable to reach stability quickly enough resulting an incomplete SOM grid, where partial regions of the SOM map is barely utilized. 
+
+
+
+%%%%%%%%%%%%%%%%
+%%%%% Ex 3 %%%%%
+%%%%%%%%%%%%%%%%
+\newpage
+\section{Problem 3: MLP vs Deep Learning Based CNN [\Cref{code:p3}]}
+
+%{
+%	Using your preferred deep learning library (you are free to use any library from TensorFlow, PyTorch, or Keras, which were introduced in Tutorials #1, #2, #4), we need to train a convolutional neural network (CNN) to classify images from the CIFAR10 dataset. Note that most libraries mentioned have utility functions to download and load this dataset (in your code).
+%	
+%	Using the API for loading the dataset, will readily divide it into training and testing sets. Randomly sample 20% of the training set in CIFAR dataset and use it as your training set for the purposes of this problem. Use the test set from the original dataset for validation. Normalize your training and testing sets using Min-Max normalization.
+%	
+%	The following three networks (MLP and CNNs), could be readily implemented using libraries in TesnorFlow or PyTorch
+
+%	1- Build a multi-layer perceptron with the following layers:
+%	
+%		• Dense layer with 512 units and a sigmoid activation function
+%		
+%		• Dense layer (output layer) with 10 units (representing 10 classes in the dataset) and a suitable activation function for the classification task
+%	
+%	2- (10 marks) Build a Convolutional neural network with the following architecture:
+%	
+%		• 2D Convolutional layer with 64 filters (size of 3x3) and ReLU activation function
+%		
+%		• Flatten layer (to pass to the Fully Connected layers)
+%		
+%		• Fully connected (Dense) layer with 512 units and a sigmoid activation function
+%		
+%		• Fully connected layer with 512 units and a sigmoid activation function
+%		
+%		• Dense layer (output layer) with 10 units (representing 10 classes in the dataset) and a suitable activation function for the classification task
+%	
+%	3- Build a Convolutional Neural network with the following architecture:
+%	
+%		• 2D Convolutional layer with 64 filters (size of 3x3) and ReLU activation function
+%		
+%		• 2x2 Maxpooling layer
+%		
+%		• 2D Convolutional layer with 64 filters (size of 3x3) and ReLU activation function
+%		
+%		• 2x2 Maxpooling layer
+%		
+%		• Flatten layer (to pass to the Fully Connected layers)
+%		
+%		• Fully connected (Dense) layer with 512 units and a sigmoid activation function
+%		
+%		• Dropout layer with 0.2 dropout rate
+%		
+%		• Fully connected layer with 512 units and a sigmoid activation function
+%		
+%		• Dropout layer with 0.2 dropout rate
+%		
+%		• Dense layer (output layer) with 10 units and a suitable activation function for the classification task
+
+%Use a batch size of 32, utilize Adam as the optimizer and choose an appropriate loss function while monitoring the accuracy in both networks. Train each network for 5 epochs.
+%}
+
+\subsection{(a): Result and comment (training and testing accuracy) (15 marks)}
+% a) (15 marks) Report the training and testing accuracy for all three networks and comment on the performance of the MLP vs CNNs.
+\begin{figure}[H]
+	\center
+	\includegraphics[height=300px]{../src_code/output/p3/progress_MLP.}
+	\caption{MLP Progress}
+\end{figure}
+\begin{figure}[H]
+	\center
+	\includegraphics[height=300px]{../src_code/output/p3/progress_CNN-1.}
+	\caption{CNN-1 Progress}
+\end{figure}
+\begin{figure}[H]
+	\center
+	\includegraphics[height=300px]{../src_code/output/p3/progress_CNN-2.}
+	\caption{CNN-2 Progress}
+\end{figure}
+
+
+\subsection{(b): Plot training and validation curves (15 marks)}
+% b) (15 marks) Plot the training and validation curves for the two CNNs and comment on the output. How does the training time compare for each of the CNNs? How does the different architectures influence these results? What do you expect the accuracies to be if the networks were trained for more epochs?
+\begin{figure}[H]
+	\center
+	\subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[airplane]}} \\
+	\subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[airplane]}} \\
+	\subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[airplane]}}
+	\caption{Testing Sample}
+\end{figure}
+\begin{figure}[H]
+	\center
+	\subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[automobile]}} \\
+	\subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[automobile]}} \\
+	\subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[automobile]}}
+	\caption{Testing Sample}
+\end{figure}
+
+
+
+
+\begin{lstlisting}[style=mystyle:output]
+# jaku @ Jacks-MacBook-Pro in ~/JX-Platform/Github/UW__4B_Individual_Works/ECE_457B/A2/src_code on git:main x [20:24:23]
+$ python as2_p3.py
+2021-03-10 20:29:03.468760: I tensorflow/compiler/jit/xla_cpu_device.cc:41] Not creating XLA devices, tf_xla_enable_xla_devices not set
+2021-03-10 20:29:03.469028: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+ic| np.shape(y_train): (10000, 10)
+ic| np.shape(X_train): (10000, 32, 32, 3)
+ic| np.shape(y_test): (10000, 10)
+ic| np.shape(X_test): (10000, 32, 32, 3)
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+flatten (Flatten)            (None, 3072)              0
+_________________________________________________________________
+dense (Dense)                (None, 512)               1573376
+_________________________________________________________________
+dense_1 (Dense)              (None, 10)                5130
+=================================================================
+Total params: 1,578,506
+Trainable params: 1,578,506
+Non-trainable params: 0
+_________________________________________________________________
+ic| model.summary(): None
+Model: "sequential_1"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+conv2d (Conv2D)              (None, 30, 30, 64)        1792
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 57600)             0
+_________________________________________________________________
+dense_2 (Dense)              (None, 512)               29491712
+_________________________________________________________________
+dense_3 (Dense)              (None, 10)                5130
+=================================================================
+Total params: 29,498,634
+Trainable params: 29,498,634
+Non-trainable params: 0
+_________________________________________________________________
+ic| model.summary(): None
+Model: "sequential_2"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+conv2d_1 (Conv2D)            (None, 30, 30, 64)        1792
+_________________________________________________________________
+max_pooling2d (MaxPooling2D) (None, 15, 15, 64)        0
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 13, 13, 64)        36928
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 6, 6, 64)          0
+_________________________________________________________________
+flatten_2 (Flatten)          (None, 2304)              0
+_________________________________________________________________
+dense_4 (Dense)              (None, 512)               1180160
+_________________________________________________________________
+dropout (Dropout)            (None, 512)               0
+_________________________________________________________________
+dense_5 (Dense)              (None, 512)               262656
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 512)               0
+_________________________________________________________________
+dense_6 (Dense)              (None, 10)                5130
+=================================================================
+Total params: 1,486,666
+Trainable params: 1,486,666
+Non-trainable params: 0
+_________________________________________________________________
+ic| model.summary(): None
+2021-03-10 20:29:06.892492: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:116] None of the MLIR optimization passes are enabled (registered 2)
+Epoch 1/5
+313/313 [==============================] - 3s 9ms/step - loss: 2.3115 - accuracy: 0.2018 - val_loss: 1.9089 - val_accuracy: 0.3081
+Epoch 2/5
+313/313 [==============================] - 2s 8ms/step - loss: 1.8969 - accuracy: 0.3178 - val_loss: 1.8433 - val_accuracy: 0.3347
+Epoch 3/5
+313/313 [==============================] - 3s 8ms/step - loss: 1.8276 - accuracy: 0.3480 - val_loss: 1.8220 - val_accuracy: 0.3614
+Epoch 4/5
+313/313 [==============================] - 3s 8ms/step - loss: 1.7912 - accuracy: 0.3663 - val_loss: 1.9133 - val_accuracy: 0.3177
+Epoch 5/5
+313/313 [==============================] - 3s 8ms/step - loss: 1.7703 - accuracy: 0.3605 - val_loss: 1.7566 - val_accuracy: 0.3657
+Epoch 1/5
+313/313 [==============================] - 68s 217ms/step - loss: 2.2876 - accuracy: 0.2726 - val_loss: 1.5611 - val_accuracy: 0.4378
+Epoch 2/5
+313/313 [==============================] - 76s 242ms/step - loss: 1.2784 - accuracy: 0.5525 - val_loss: 1.4239 - val_accuracy: 0.4875
+Epoch 3/5
+313/313 [==============================] - 79s 253ms/step - loss: 0.9874 - accuracy: 0.6519 - val_loss: 1.4682 - val_accuracy: 0.4847
+Epoch 4/5
+313/313 [==============================] - 75s 239ms/step - loss: 0.7326 - accuracy: 0.7633 - val_loss: 1.4848 - val_accuracy: 0.5039
+Epoch 5/5
+313/313 [==============================] - 69s 220ms/step - loss: 0.4928 - accuracy: 0.8481 - val_loss: 1.6049 - val_accuracy: 0.5052
+Epoch 1/5
+313/313 [==============================] - 16s 48ms/step - loss: 2.2444 - accuracy: 0.1803 - val_loss: 1.6663 - val_accuracy: 0.3851
+Epoch 2/5
+313/313 [==============================] - 16s 50ms/step - loss: 1.6087 - accuracy: 0.4011 - val_loss: 1.4804 - val_accuracy: 0.4693
+Epoch 3/5
+313/313 [==============================] - 15s 47ms/step - loss: 1.4373 - accuracy: 0.4679 - val_loss: 1.4051 - val_accuracy: 0.4922
+Epoch 4/5
+313/313 [==============================] - 15s 47ms/step - loss: 1.2821 - accuracy: 0.5459 - val_loss: 1.2692 - val_accuracy: 0.5448
+Epoch 5/5
+313/313 [==============================] - 15s 48ms/step - loss: 1.1340 - accuracy: 0.5992 - val_loss: 1.2754 - val_accuracy: 0.5373
+ic| h.history['accuracy'][-1]: 0.36899998784065247
+ic| h.history['val_accuracy'][-1]: 0.36570000648498535
+ic| h.history['loss'][-1]: 1.7567451000213623
+ic| h.history['val_loss'][-1]: 1.756562352180481
+ic| h.history['accuracy'][-1]: 0.840399980545044
+ic| h.history['val_accuracy'][-1]: 0.5052000284194946
+ic| h.history['loss'][-1]: 0.5050879120826721
+ic| h.history['val_loss'][-1]: 1.6048572063446045
+ic| h.history['accuracy'][-1]: 0.5878000259399414
+ic| h.history['val_accuracy'][-1]: 0.5372999906539917
+ic| h.history['loss'][-1]: 1.1485614776611328
+ic| h.history['val_loss'][-1]: 1.2754000425338745
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                      TODO [Remove For Final Copy!]                     * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\printlistoftodos
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                                Glossary                                * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\clearpage
+%\printglossaries
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                               References                               * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \printbibliography[heading=none]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ************************************************************************** %%
+%% *                               Appendices                               * %%
+%% ************************************************************************** %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% appendices use section and subsection numbering
+\newpage
+\appendix
+\begin{appendices}
+% INPUT UR APPENDIX
+\section{Handy Custom Library}
+\lstinputlisting[language=python, caption=My Custom Library, label=code:jx_lib]{../src_code/jx_lib.py}
+
+\section{P1 - Code}
+\lstinputlisting[language=python, caption=SVM Full Implementation, label=code:p1]{../src_code/as2_p1.py}
+
+\section{P2 - Code}
+\lstinputlisting[language=python, caption=KSOM Full Implementation, label=code:p2]{../src_code/as2_p2.py}
+
+
+\section{P3 - Code}
+\lstinputlisting[language=python, caption=MLP and CNN Full Implementation, label=code:p3]{../src_code/as2_p3.py}
+
+
+
+\end{appendices}
+
+\end{document}
+
+

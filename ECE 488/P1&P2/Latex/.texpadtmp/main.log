@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.7)  8 FEB 2021 21:11
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.7)  9 FEB 2021 13:00
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1340,7 +1340,7 @@ Package: fancyhdr 2019/01/31 v3.10 Extensive control of page headers and footers
 )
 \@quotelevel=\count531
 \@quotereset=\count532
- (/Users/jaku/Desktop/ECE 488/Projects/P1&P2/Latex/.texpadtmp/main.aux
+ (/Users/jaku/JX-Platform/Github/UW__4B_Individual_Works/ECE 488/P1&P2/Latex/.texpadtmp/main.aux
 
 LaTeX Warning: Label `' multiply defined.
 
@@ -1487,7 +1487,7 @@ Package biblatex Info: Data encoding 'utf8' specified.
 
 Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'main.bbl' found.
- (/Users/jaku/Desktop/ECE 488/Projects/P1&P2/Latex/.texpadtmp/main.bbl)
+ (/Users/jaku/JX-Platform/Github/UW__4B_Individual_Works/ECE 488/P1&P2/Latex/.texpadtmp/main.bbl)
 Package biblatex Info: Reference section=0 on input line 46.
 Package biblatex Info: Reference segment=0 on input line 46.
 \c@lstlisting=\count540
@@ -1548,9 +1548,6 @@ LaTeX Font Warning: Command \normalsize invalid in math mode on input line 52.
 \openout4 = `main.ist'.
 
 {/usr/local/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map} <./UniversityOfWaterloo_logo_vert_rgb.png>]
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 135.
-
 
 Package Fancyhdr Warning: \headheight is too small (12.0pt): 
 Make it at least 13.19998pt.
@@ -1560,62 +1557,82 @@ This may cause the page layout to be inconsistent, however.
 [1
 
 ]
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 154.
-Package mdframed Info: Not enough space on this page on input line 155.
+LaTeX Font Info:    Calculating math sizes for size <13> on input line 142.
+
+
+LaTeX Font Warning: Font shape `OT1/cmss/m/n' in size <13> not available
+(Font)              size <12> substituted on input line 142.
+
+
+LaTeX Font Warning: Font shape `OT1/cmtt/m/n' in size <13> not available
+(Font)              size <12> substituted on input line 142.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <13> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 142.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9.62007> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 142.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7.80008> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 142.
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 142.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\tau' on input line 142.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 142.
+
 <Fig/sisotool-p1.png, id=57, 706.64pt x 542.025pt>
 File: Fig/sisotool-p1.png Graphic file (type png)
 <use Fig/sisotool-p1.png>
-Package pdftex.def Info: Fig/sisotool-p1.png  used on input line 170.
+Package pdftex.def Info: Fig/sisotool-p1.png  used on input line 172.
 (pdftex.def)             Requested size: 351.31378pt x 269.4735pt.
 
-
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 171.
+(caption)                particular \caption on input line 173.
 See the caption package documentation for explanation.
 
 <Fig/root-locus.png, id=69, 795.97375pt x 515.9275pt>
 File: Fig/root-locus.png Graphic file (type png)
 <use Fig/root-locus.png>
-Package pdftex.def Info: Fig/root-locus.png  used on input line 186.
+Package pdftex.def Info: Fig/root-locus.png  used on input line 188.
 (pdftex.def)             Requested size: 451.68915pt x 292.76703pt.
 
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 187.
-See the caption package documentation for explanation.
-
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 194.
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 212.
-<Fig/sisotool-c1-zero.png, id=72, 910.40125pt x 707.64375pt>
-File: Fig/sisotool-c1-zero.png Graphic file (type png)
-<use Fig/sisotool-c1-zero.png>
-Package pdftex.def Info: Fig/sisotool-c1-zero.png  used on input line 218.
-(pdftex.def)             Requested size: 451.68915pt x 351.09998pt.
-
-Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 219.
-See the caption package documentation for explanation.
-
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 230.
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 238.
-<Fig/sisotool-c1.png, id=81, 910.40125pt x 699.61375pt>
-File: Fig/sisotool-c1.png Graphic file (type png)
-<use Fig/sisotool-c1.png>
-Package pdftex.def Info: Fig/sisotool-c1.png  used on input line 244.
-(pdftex.def)             Requested size: 451.68915pt x 347.11586pt.
-
-Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 245.
+(caption)                particular \caption on input line 189.
 See the caption package documentation for explanation.
 
 [2
 
- <./Fig/sisotool-p1.png>] [3 <./Fig/root-locus.png>] [4 <./Fig/sisotool-c1-zero.png>] [5 <./Fig/sisotool-c1.png>]
-<../matlab/output/q1/step_response_unit-step.png, id=123, 357.0138pt x 293.898pt>
+ <./Fig/sisotool-p1.png>]
+Package mdframed Info: Not enough space on this page on input line 196.
+ [3 <./Fig/root-locus.png>]
+<Fig/sisotool-c1-zero.png, id=99, 910.40125pt x 707.64375pt>
+File: Fig/sisotool-c1-zero.png Graphic file (type png)
+<use Fig/sisotool-c1-zero.png>
+Package pdftex.def Info: Fig/sisotool-c1-zero.png  used on input line 220.
+(pdftex.def)             Requested size: 451.68915pt x 351.09998pt.
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 221.
+See the caption package documentation for explanation.
+
+<Fig/sisotool-c1.png, id=108, 910.40125pt x 699.61375pt>
+File: Fig/sisotool-c1.png Graphic file (type png)
+<use Fig/sisotool-c1.png>
+Package pdftex.def Info: Fig/sisotool-c1.png  used on input line 246.
+(pdftex.def)             Requested size: 451.68915pt x 347.11586pt.
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 247.
+See the caption package documentation for explanation.
+
+[4 <./Fig/sisotool-c1-zero.png>]
+<../matlab/output/q1/step_response_unit-step.png, id=118, 357.0138pt x 293.898pt>
 File: ../matlab/output/q1/step_response_unit-step.png Graphic file (type png)
 <use ../matlab/output/q1/step_response_unit-step.png>
 Package pdftex.def Info: ../matlab/output/q1/step_response_unit-step.png  used on input line 253.
@@ -1626,178 +1643,191 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 254.
 See the caption package documentation for explanation.
 
-<../matlab/output/q1/step_response_0p5-Hz.png, id=124, 356.532pt x 293.898pt>
+<../matlab/output/q1/step_response_0p5-Hz.png, id=119, 356.532pt x 293.898pt>
 File: ../matlab/output/q1/step_response_0p5-Hz.png Graphic file (type png)
 <use ../matlab/output/q1/step_response_0p5-Hz.png>
-Package pdftex.def Info: ../matlab/output/q1/step_response_0p5-Hz.png  used on input line 257.
-(pdftex.def)             Requested size: 301.1261pt x 248.24487pt.
-
-Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 258.
-See the caption package documentation for explanation.
-
-<../matlab/output/q1/step_response_2-Hz.png, id=125, 356.532pt x 293.898pt>
+Package pdftex.def Info: ../matlab/output/q1/step_response_0p5-Hz.png  used on input line 259.
+(pdftex.def)             Requested size: 220.8258pt x 182.03996pt.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 259.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 259.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <5> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 259.
+<../matlab/output/q1/step_response_2-Hz.png, id=120, 356.532pt x 293.898pt>
 File: ../matlab/output/q1/step_response_2-Hz.png Graphic file (type png)
 <use ../matlab/output/q1/step_response_2-Hz.png>
 Package pdftex.def Info: ../matlab/output/q1/step_response_2-Hz.png  used on input line 261.
-(pdftex.def)             Requested size: 301.1261pt x 248.24487pt.
-
-Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 262.
-See the caption package documentation for explanation.
-
-<../matlab/output/q1/step_response_10-Hz.png, id=126, 356.532pt x 293.898pt>
+(pdftex.def)             Requested size: 220.8258pt x 182.03996pt.
+<../matlab/output/q1/step_response_10-Hz.png, id=121, 356.532pt x 293.898pt>
 File: ../matlab/output/q1/step_response_10-Hz.png Graphic file (type png)
 <use ../matlab/output/q1/step_response_10-Hz.png>
-Package pdftex.def Info: ../matlab/output/q1/step_response_10-Hz.png  used on input line 265.
-(pdftex.def)             Requested size: 301.1261pt x 248.24487pt.
-
-Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 266.
-See the caption package documentation for explanation.
-
-<../matlab/output/q1/step_response_100-Hz.png, id=127, 356.532pt x 287.1528pt>
+Package pdftex.def Info: ../matlab/output/q1/step_response_10-Hz.png  used on input line 263.
+(pdftex.def)             Requested size: 220.8258pt x 182.03996pt.
+<../matlab/output/q1/step_response_100-Hz.png, id=122, 356.532pt x 287.1528pt>
 File: ../matlab/output/q1/step_response_100-Hz.png Graphic file (type png)
 <use ../matlab/output/q1/step_response_100-Hz.png>
-Package pdftex.def Info: ../matlab/output/q1/step_response_100-Hz.png  used on input line 269.
-(pdftex.def)             Requested size: 301.1261pt x 242.54745pt.
+Package pdftex.def Info: ../matlab/output/q1/step_response_100-Hz.png  used on input line 265.
+(pdftex.def)             Requested size: 220.8258pt x 177.862pt.
 
-Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 270.
-See the caption package documentation for explanation.
+LaTeX Warning: `h' float specifier changed to `ht'.
 
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 275.
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 283.
-<../matlab/output/q1/sim_unit-step.png, id=135, 257.763pt x 261.6174pt>
+[5 <./Fig/sisotool-c1.png> <../matlab/output/q1/step_response_unit-step.png (PNG copy)>] [6 <../matlab/output/q1/step_response_0p5-Hz.png (PNG copy)> <../matlab/output/q1/step_response_2-Hz.png (PNG copy)> <../matlab/output/q1/step_response_10-Hz.png (PNG copy)> <../matlab/output/q1/step_response_100-Hz.png (PNG copy)>]
+Package mdframed Info: Not enough space on this page on input line 272.
+<../matlab/output/q1/sim_unit-step.png, id=147, 257.763pt x 261.6174pt>
 File: ../matlab/output/q1/sim_unit-step.png Graphic file (type png)
 <use ../matlab/output/q1/sim_unit-step.png>
-Package pdftex.def Info: ../matlab/output/q1/sim_unit-step.png  used on input line 292.
+Package pdftex.def Info: ../matlab/output/q1/sim_unit-step.png  used on input line 289.
 (pdftex.def)             Requested size: 180.67566pt x 183.38242pt.
 
+
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 293.
+(caption)                particular \caption on input line 290.
 See the caption package documentation for explanation.
 
-<../matlab/output/q1/sim_0p5-Hz.png, id=136, 257.763pt x 261.6174pt>
+<../matlab/output/q1/sim_0p5-Hz.png, id=148, 257.763pt x 261.6174pt>
 File: ../matlab/output/q1/sim_0p5-Hz.png Graphic file (type png)
 <use ../matlab/output/q1/sim_0p5-Hz.png>
-Package pdftex.def Info: ../matlab/output/q1/sim_0p5-Hz.png  used on input line 296.
+Package pdftex.def Info: ../matlab/output/q1/sim_0p5-Hz.png  used on input line 293.
 (pdftex.def)             Requested size: 180.67566pt x 183.38242pt.
 
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 297.
+(caption)                particular \caption on input line 294.
 See the caption package documentation for explanation.
 
-<../matlab/output/q1/sim_2-Hz.png, id=137, 257.763pt x 261.6174pt>
+<../matlab/output/q1/sim_2-Hz.png, id=149, 257.763pt x 261.6174pt>
 File: ../matlab/output/q1/sim_2-Hz.png Graphic file (type png)
 <use ../matlab/output/q1/sim_2-Hz.png>
-Package pdftex.def Info: ../matlab/output/q1/sim_2-Hz.png  used on input line 300.
+Package pdftex.def Info: ../matlab/output/q1/sim_2-Hz.png  used on input line 297.
 (pdftex.def)             Requested size: 180.67566pt x 183.38242pt.
 
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 301.
+(caption)                particular \caption on input line 298.
 See the caption package documentation for explanation.
 
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 304.
-Package mdframed Info: Not enough space on this page on input line 306.
-[6
+[7
 
- <../matlab/output/q1/step_response_unit-step.png (PNG copy)> <../matlab/output/q1/step_response_0p5-Hz.png (PNG copy)>] [7 <../matlab/output/q1/step_response_2-Hz.png (PNG copy)> <../matlab/output/q1/step_response_10-Hz.png (PNG copy)>] [8 <../matlab/output/q1/step_response_100-Hz.png (PNG copy)>] [9 <../matlab/output/q1/sim_unit-step.png (PNG copy)> <../matlab/output/q1/sim_0p5-Hz.png (PNG copy)> <../matlab/output/q1/sim_2-Hz.png (PNG copy)>]
-<../matlab/output/q2/bode_plot_L1.png, id=167, 339.669pt x 276.0714pt>
+ <../matlab/output/q1/sim_unit-step.png (PNG copy)>] [8 <../matlab/output/q1/sim_0p5-Hz.png (PNG copy)> <../matlab/output/q1/sim_2-Hz.png (PNG copy)>]
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 311.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `subscript' on input line 311.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `subscript' on input line 311.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `subscript' on input line 311.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 311.
+
+<../matlab/output/q2/bode_plot_L1.png, id=164, 339.669pt x 276.0714pt>
 File: ../matlab/output/q2/bode_plot_L1.png Graphic file (type png)
 <use ../matlab/output/q2/bode_plot_L1.png>
-Package pdftex.def Info: ../matlab/output/q2/bode_plot_L1.png  used on input line 318.
+Package pdftex.def Info: ../matlab/output/q2/bode_plot_L1.png  used on input line 313.
 (pdftex.def)             Requested size: 301.1261pt x 244.75073pt.
 
-
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 319.
+(caption)                particular \caption on input line 314.
 See the caption package documentation for explanation.
 
-[10 <../matlab/output/q2/bode_plot_L1.png (PNG copy)>]
-<../matlab/output/q1/siso_plot_L1.png, id=178, 660.066pt x 535.7616pt>
+[9 <../matlab/output/q2/bode_plot_L1.png (PNG copy)>]
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 327.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `subscript' on input line 327.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 327.
+
+<../matlab/output/q1/siso_plot_L1.png, id=175, 660.066pt x 535.7616pt>
 File: ../matlab/output/q1/siso_plot_L1.png Graphic file (type png)
 <use ../matlab/output/q1/siso_plot_L1.png>
-Package pdftex.def Info: ../matlab/output/q1/siso_plot_L1.png  used on input line 338.
+Package pdftex.def Info: ../matlab/output/q1/siso_plot_L1.png  used on input line 331.
 (pdftex.def)             Requested size: 351.31378pt x 285.15402pt.
 
-
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 339.
+(caption)                particular \caption on input line 332.
 See the caption package documentation for explanation.
 
-<../matlab/output/q2/siso_plot_p2ci-L1-modified.png, id=179, 661.5114pt x 535.7616pt>
+<../matlab/output/q2/siso_plot_p2ci-L1-modified.png, id=176, 661.5114pt x 535.7616pt>
 File: ../matlab/output/q2/siso_plot_p2ci-L1-modified.png Graphic file (type png)
 <use ../matlab/output/q2/siso_plot_p2ci-L1-modified.png>
-Package pdftex.def Info: ../matlab/output/q2/siso_plot_p2ci-L1-modified.png  used on input line 343.
+Package pdftex.def Info: ../matlab/output/q2/siso_plot_p2ci-L1-modified.png  used on input line 336.
 (pdftex.def)             Requested size: 351.31378pt x 284.53271pt.
 
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 344.
+(caption)                particular \caption on input line 337.
 See the caption package documentation for explanation.
 
-<../matlab/output/q2/step_response_P2ci-unit-step.png, id=183, 351.714pt x 293.898pt>
+[10 <../matlab/output/q1/siso_plot_L1.png (PNG copy)> <../matlab/output/q2/siso_plot_p2ci-L1-modified.png (PNG copy)>]
+<../matlab/output/q2/step_response_P2ci-unit-step.png, id=187, 351.714pt x 293.898pt>
 File: ../matlab/output/q2/step_response_P2ci-unit-step.png Graphic file (type png)
 <use ../matlab/output/q2/step_response_P2ci-unit-step.png>
-Package pdftex.def Info: ../matlab/output/q2/step_response_P2ci-unit-step.png  used on input line 352.
+Package pdftex.def Info: ../matlab/output/q2/step_response_P2ci-unit-step.png  used on input line 346.
 (pdftex.def)             Requested size: 216.21965pt x 180.67566pt.
-<../matlab/output/q2/sim_P2ci-unit-step.png, id=184, 257.763pt x 261.6174pt>
+<../matlab/output/q2/sim_P2ci-unit-step.png, id=188, 257.763pt x 261.6174pt>
 File: ../matlab/output/q2/sim_P2ci-unit-step.png Graphic file (type png)
 <use ../matlab/output/q2/sim_P2ci-unit-step.png>
-Package pdftex.def Info: ../matlab/output/q2/sim_P2ci-unit-step.png  used on input line 353.
+Package pdftex.def Info: ../matlab/output/q2/sim_P2ci-unit-step.png  used on input line 347.
 (pdftex.def)             Requested size: 178.01791pt x 180.67566pt.
 
+
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 354.
+(caption)                particular \caption on input line 348.
 See the caption package documentation for explanation.
 
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 358.
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 383.
-<../matlab/output/q2/c-iii.png, id=186, 359.4228pt x 278.4804pt>
+Package mdframed Info: Not enough space on this page on input line 352.
+[11
+
+ <../matlab/output/q2/step_response_P2ci-unit-step.png (PNG copy)> <../matlab/output/q2/sim_P2ci-unit-step.png (PNG copy)>]
+<../matlab/output/q2/c-iii.png, id=203, 359.4228pt x 278.4804pt>
 File: ../matlab/output/q2/c-iii.png Graphic file (type png)
 <use ../matlab/output/q2/c-iii.png>
-Package pdftex.def Info: ../matlab/output/q2/c-iii.png  used on input line 394.
+Package pdftex.def Info: ../matlab/output/q2/c-iii.png  used on input line 388.
 (pdftex.def)             Requested size: 323.88336pt x 250.93842pt.
 
+
 Package caption Warning: The option `hypcap=true' will be ignored for this
-(caption)                particular \caption on input line 395.
+(caption)                particular \caption on input line 389.
 See the caption package documentation for explanation.
 
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 399.
-Package mdframed Info: mdframed inside a box 
- mdframed uses option nobreak mdframed on input line 403.
-Package mdframed Info: Not enough space on this page on input line 405.
-[11 <../matlab/output/q1/siso_plot_L1.png (PNG copy)> <../matlab/output/q2/siso_plot_p2ci-L1-modified.png (PNG copy)>] [12 <../matlab/output/q2/step_response_P2ci-unit-step.png (PNG copy)> <../matlab/output/q2/sim_P2ci-unit-step.png (PNG copy)>] [13] [14 <../matlab/output/q2/c-iii.png (PNG copy)>] (/Users/jaku/Desktop/ECE 488/Projects/P1&P2/Latex/.texpadtmp/main.gls) (/usr/local/texlive/2020/texmf-dist/tex/latex/listings/lstlang1.sty
+[12 <../matlab/output/q2/c-iii.png (PNG copy)>] (/Users/jaku/JX-Platform/Github/UW__4B_Individual_Works/ECE 488/P1&P2/Latex/.texpadtmp/main.gls) (/usr/local/texlive/2020/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 )
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 445.
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 (../matlab/main.m
 
@@ -2411,7 +2441,7 @@ Package xcolor Warning: Incompatible color definition on input line 61.
 
 Package xcolor Warning: Incompatible color definition on input line 62.
 
-[15
+[13
 
 ]
 
@@ -2955,7 +2985,7 @@ Package xcolor Warning: Incompatible color definition on input line 131.
 
 Package xcolor Warning: Incompatible color definition on input line 133.
 
-[16]
+[14]
 
 Package xcolor Warning: Incompatible color definition on input line 133.
 
@@ -3123,34 +3153,34 @@ Package xcolor Warning: Incompatible color definition on input line 161.
 
 )
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 445.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 (../matlab/helper.m
 
@@ -3384,7 +3414,7 @@ Package xcolor Warning: Incompatible color definition on input line 36.
 
 Package xcolor Warning: Incompatible color definition on input line 37.
 
-[17]
+[15]
 
 Package xcolor Warning: Incompatible color definition on input line 38.
 
@@ -3576,10 +3606,10 @@ Package xcolor Warning: Incompatible color definition on input line 66.
 
 )
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 
-Package xcolor Warning: Incompatible color definition on input line 448.
+Package xcolor Warning: Incompatible color definition on input line 441.
 
 
 Package caption Warning: Unused \captionsetup[table] on input line 61.
@@ -3588,12 +3618,12 @@ See the caption package documentation for explanation.
 \tf@thm=\write7
 \openout7 = `main.thm'.
 
-[18]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 452.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 452.
- (/Users/jaku/Desktop/ECE 488/Projects/P1&P2/Latex/.texpadtmp/main.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 452.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 452.
+[16]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 445.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 445.
+ (/Users/jaku/JX-Platform/Github/UW__4B_Individual_Works/ECE 488/P1&P2/Latex/.texpadtmp/main.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 445.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 445.
 
 
 LaTeX Font Warning: Size substitutions with differences
@@ -3605,21 +3635,21 @@ LaTeX Warning: There were multiply-defined labels.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 452.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 445.
  ) 
 Here is how much of TeX's memory you used:
- 45081 strings out of 480608
- 862142 string characters out of 5903631
- 1915440 words of memory out of 5000000
- 59834 multiletter control sequences out of 15000+600000
- 588273 words of font info for 154 fonts, out of 8000000 for 9000
+ 45215 strings out of 480608
+ 864645 string characters out of 5903631
+ 1914646 words of memory out of 5000000
+ 59940 multiletter control sequences out of 15000+600000
+ 618559 words of font info for 230 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 81i,21n,90p,1193b,3059s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 81i,20n,90p,1193b,3058s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/latxfont/line10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/rsfs/rsfs10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/urw/symbol/usyr.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/urw/symbol/usyr.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on "/Users/jaku/Desktop/ECE 488/Projects/P1&P2/Latex/.texpadtmp/main.pdf" (19 pages, 1023653 bytes).
+Output written on "/Users/jaku/JX-Platform/Github/UW__4B_Individual_Works/ECE 488/P1&P2/Latex/.texpadtmp/main.pdf" (17 pages, 1020304 bytes).
 PDF statistics:
- 613 PDF objects out of 1000 (max. 8388607)
- 546 compressed objects within 6 object streams
- 317 named destinations out of 1000 (max. 500000)
- 34452 words of extra memory for PDF output out of 35830 (max. 10000000)
+ 626 PDF objects out of 1000 (max. 8388607)
+ 561 compressed objects within 6 object streams
+ 316 named destinations out of 1000 (max. 500000)
+ 53452 words of extra memory for PDF output out of 61914 (max. 10000000)
 

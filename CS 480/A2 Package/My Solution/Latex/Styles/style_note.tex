@@ -23,7 +23,8 @@
 	}%
 	\mdfsetup{innertopmargin=0pt,skipabove=5pt,linecolor=#2,%
 		linewidth=2pt,topline=true,%
-		frametitleaboveskip=\dimexpr-\ht\strutbox\relax}
+		frametitleaboveskip=\dimexpr-\ht\strutbox\relax,
+		backgroundcolor={white!90!#2}}
 	\begin{mdframed}[]\relax%
 	\label{#3}}{\end{mdframed}
 }
@@ -62,9 +63,6 @@
 \newenvironment{definition}[2][]{%
 	\createnoteenv{#1}{#2}{blue!40}{Definition}{\thedefinition}{definition}%
 }{\end{mdframed}}
-\newenvironment{definition*}[2][]{%
-	\createnoteenv{#1}{#2}{gray!40}{Definition}{\thedefinition}{definition}%
-}{\end{mdframed}}
 \Crefname{definition}{Definition}{definitions}
 
 
@@ -75,9 +73,6 @@
 \newenvironment{theorem}[2][]{%
 	\createnoteenv{#1}{#2}{cyan!40}{Theorem}{\thetheorem}{theorem}%
 }{\end{mdframed}}
-\newenvironment{theorem*}[2][]{%
-	\createnoteenv{#1}{#2}{gray!40}{Theorem}{\thetheorem}{theorem}%
-}{\end{mdframed}}
 \Crefname{theorem}{Theorem}{theorems}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -86,9 +81,6 @@
 \renewcommand{\theproof}{\arabic{section}.\arabic{proof}}
 \newenvironment{proof}[2][]{%
 	\createnoteenv{#1}{#2}{red!20}{Proof}{\theproof}{proof}%
-}{\end{mdframed}}
-\newenvironment{proof*}[2][]{%
-	\createnoteenv{#1}{#2}{gray!40}{Proof}{\theproof}{proof}%
 }{\end{mdframed}}
 \Crefname{proof}{Proof}{proofs}
 
@@ -100,9 +92,6 @@
 \newenvironment{alert}[2][]{%
 	\createnoteenv{#1}{#2}{red!80}{Alert}{\thealert}{alert}%
 }{\end{mdframed}}
-\newenvironment{alert*}[2][]{%
-	\createnoteenv{#1}{#2}{gray!40}{Alert}{\thealert}{alert}%
-}{\end{mdframed}}
 \Crefname{alert}{Alert}{alerts}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -111,9 +100,6 @@
 \renewcommand{\theanswer}{\arabic{section}.\arabic{answer}}
 \newenvironment{answer}[2][]{%
 	\createnoteenv{#1}{#2}{orange!60}{Answer}{\theanswer}{answer}%
-}{\end{mdframed}}
-\newenvironment{answer*}[2][]{%
-	\createnoteenv{#1}{#2}{gray!40}{Answer}{\theanswer}{answer}%
 }{\end{mdframed}}
 \Crefname{answer}{Answer}{answers}
 
@@ -124,10 +110,8 @@
 \newenvironment{remark}[2][]{%
 	\createnoteenv{#1}{#2}{orange!40}{Remark}{\theremark}{remark}%
 }{\end{mdframed}}
-\newenvironment{remark*}[2][]{%
-	\createnoteenv{#1}{#2}{gray!40}{Remark}{\theremark}{remark}%
-}{\end{mdframed}}
 \Crefname{remark}{Remark}{remarks}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,54 +132,16 @@
 \newenvironment{algo}[2][]{%
 	\createnoteenv{#1}{#2}{yellow!90!brown!60}{Algorithm}{\thealgo}{algo}%
 }{\end{mdframed}}
-\newenvironment{algo*}[2][]{%
-	\createnoteenv{#1}{#2}{gray!40}{Algorithm}{\thealgo}{algo}%
-}{\end{mdframed}}
 \Crefname{algo}{Algorithm}{algos}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CS480 - Exercise
-%\setlength{\parskip}{1cm}
-%\setlength{\parindent}{1cm}
-
-%\tikzstyle{titregris} =
-%[draw=gray,fill=white, shading = exersicetitle, %
-%text=gray, rectangle, rounded corners, right,minimum height=.3cm]
-%\pgfdeclarehorizontalshading{exersicebackground}{100bp}
-%{color(0bp)=(green!40); color(100bp)=(black!5)}
-%\pgfdeclarehorizontalshading{exersicetitle}{100bp}
-%{color(0bp)=(red!40);color(100bp)=(black!5)}
-%\newcounter{exercise}
-%\renewcommand*\theexercise{exercice \textbf{Exercice}~n\arabic{exercise}}
-%\makeatletter
-%\def\mdf@@exercisepoints{}%new mdframed key:
-%\define@key{mdf}{exercisepoints}{%
-%\def\mdf@@exercisepoints{#1}
-%}
-%
-%\mdfdefinestyle{theoremstyle}{%
-%outerlinewidth=0.01em,linecolor=black,middlelinewidth=0.5pt,%
-%frametitlerule=true,roundcorner=2pt,%
-%apptotikzsetting={\tikzset{mfframetitlebackground/.append style={%
-%shade,left color=white, right color=blue!20}}},
-%frametitlerulecolor=black,innertopmargin=1\baselineskip,%green!60,
-%innerbottommargin=0.5\baselineskip,
-%frametitlerulewidth=0.1pt,
-%innertopmargin=0.7\topskip,skipabove={\dimexpr0.2\baselineskip+0.1\topskip\relax},
-%frametitleaboveskip=1pt,
-%frametitlebelowskip=1pt
-%}
-%\mdtheorem[style=theoremstyle]{exercise}{\textbf{Exercise}}
 
 \newcounter{exercise}[section]\setcounter{exercise}{0}
 \renewcommand{\theexercise}{\arabic{exercise}}
 \newenvironment{exercise}[2][]{%
 	\createnoteenv{#1}{#2}{gray!40}{Exercise}{\theexercise}{exercise}%
 }{\end{mdframed}}
-\newenvironment{exercise*}[2][]{%
-	\createnoteenv{#1}{#2}{gray!40}{Exercise}{\theexercise}{exercise}%
-}{\end{mdframed}}
-
 \Crefname{exercise}{Exercise}{exercises}
 
 

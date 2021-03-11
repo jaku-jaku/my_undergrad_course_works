@@ -89,8 +89,8 @@
 \section{Problem P1: Classical design for the SISO aiming system}
 \vspace{5pt}
 
-% --- ANS --- %
-\begin{answer}[(a) Verify the linearization]{ans:P1-a}
+% --- ANS (a) --- %
+\subsection{(a) Verify the linearization \label{ans:P1-a}}
 	For the given nonlinear motion equations:
 	\begin{align}
 		& \frac32 \ddot{w} + \frac14 \left[ \ddot{\theta} \cos{(\theta)} - (\dot{\theta})^2 \sin(\theta) \right] = 0 \label{eqn:a:1} \\
@@ -135,11 +135,11 @@
 	\end{note}
 	
 	\textbf{Q.E.D.}
-\end{answer}
 
 
+% --- ANS (b) --- %
 \clearpage
-\begin{answer}[(b) Compute $W(s)/\tau(s)$]{ans:P1-b}
+\subsection{(b) Compute $W(s)/\tau(s)$\label{ans:P1-b}}
 	Recall \Cref{ans:P1-a}, we obtained the relationship between $w$ and $theta$ in time domain as stated in \Cref{eqn:a:w-theta}. We may apply Laplace transform, and obtain their s-domain relationship:
 	\begin{equation}
 		\mathbb{W}(s) = - \frac16 \mathbb{T}(s)
@@ -152,9 +152,11 @@
 			P_2(s) = \frac{\mathbb{W}(s)}{\mathbb{T}(s)} = - \frac{1}{6} \frac{\Theta(s)}{\mathbb{T}(s)} \approx - \frac{4/3}{(s-4.427)(s+4.427)}
 		\end{equation}
 	\end{note}
-\end{answer}
 
-\begin{answer}[(c) Classical Control Design]{ans:P1-c}
+
+
+% --- ANS (c) --- %
+\subsection{(c) Classical Control Design \label{ans:P1-c}}
 	The goal is to design a controller $C_1(s)$ for the plant $P_1(s)$ such that all three specifications are met:
 	\begin{spec-list}
 		\item The closed-loop sytem is stable \label{spec:stable}
@@ -245,31 +247,26 @@
       	\captionof{figure}{SISO Control Panel of the final controller design $C_1(s)$ \label{fig:siso-c1}}
     }
 	
-\end{answer}
-
-\clearpage
-\begin{answer}[(d) MATLAB : Performance Evaluation]{ans:P1-d}
+% --- ANS (d) --- %
+\subsection{(d) MATLAB : Performance Evaluation \label{ans:P1-d}}
 	{	
 		\centering\includegraphics[width=300px]{../matlab/output/q1/step_response_unit-step.png}
       	\captionof{figure}{Closed-loop response for a step input of $0.5 \unit{rad}$  \label{fig:p1:response:0Hz}}
 	}
-	{	
-		\centering\includegraphics[width=300px]{../matlab/output/q1/step_response_0p5-Hz}
-      	\captionof{figure}{Closed-loop response for a sinusoidal input at $0.5\unit{Hz}$  \label{fig:p1:response:0p5Hz}}
-	}
-	{	
-		\centering\includegraphics[width=300px]{../matlab/output/q1/step_response_2-Hz}
-      	\captionof{figure}{Closed-loop response for a sinusoidal input at $2\unit{Hz}$  \label{fig:p1:response:2Hz}}
-	}
-	{	
-		\centering\includegraphics[width=300px]{../matlab/output/q1/step_response_10-Hz}
-      	\captionof{figure}{Closed-loop response for a sinusoidal input at $10\unit{Hz}$  \label{fig:p1:response:10Hz}}
-	}
-	{	
-		\centering\includegraphics[width=300px]{../matlab/output/q1/step_response_100-Hz}
-      	\captionof{figure}{Closed-loop response for a sinusoidal input at $100\unit{Hz}$  \label{fig:p1:response:100Hz}}
-	}
 	
+	\begin{figure}[h]
+		\centering
+		\subfloat[$0.5\unit{Hz}$ \label{fig:p1:response:0p5Hz}]{\includegraphics[width=220px]{../matlab/output/q1/step_response_0p5-Hz}}
+		\qquad
+		\subfloat[$2\unit{Hz}$ \label{fig:p1:response:2Hz}]{\includegraphics[width=220px]{../matlab/output/q1/step_response_2-Hz}}
+		\\
+		\subfloat[$10\unit{Hz}$ \label{fig:p1:response:10Hz}]{\includegraphics[width=220px]{../matlab/output/q1/step_response_10-Hz}}
+		\qquad
+		\subfloat[$100\unit{Hz}$ \label{fig:p1:response:100Hz}]{\includegraphics[width=220px]{../matlab/output/q1/step_response_100-Hz}}
+		\caption{Closed-loop response for sinusoidal inputs \label{fig:p1:responses}}
+	\end{figure}
+	
+	\clearpage
 	\begin{remark}[Steady-state tracking error verification]{}
 		As suggested by \Cref{spec:ess}, we shall have a steady state error less than 10\%, it is verified with a unit step input as shown in \Cref{fig:p1:response:0Hz} which has shown the steady state error is less than 5.86\%. To note, the $os_{peak}$ here indicates the percent overshoot from the input peak. Since the system is under-damp as designed, the peak here would be the steady-state value, and the overshoot percentage indicates the steady state error. Hence, we may conclude, the \Cref{spec:ess} has been satisfied, and the controller is indeed stable.
 	\end{remark}
@@ -303,8 +300,6 @@
 
 	\end{note}
 
-\end{answer}
-
 
 %%%%%%%%%%%%%%%%
 %%%%% Ex 2 %%%%%
@@ -313,25 +308,23 @@
 \section{Problem P2: Further analysis of the SISO aiming system controller}
 \vspace{5pt}
 
-\begin{answer}[(a) Loop Gain $L_1(s) = P_1(s) C_1(s)$ Bode Plot]{ans:P2-a}
+\subsection{(a) Loop Gain $L_1(s) = P_1(s) C_1(s)$ Bode Plot \label{ans:P2-a}}
 		{	
 			\centering\includegraphics[width=300px]{../matlab/output/q2/bode_plot_L1}
 	      	\captionof{figure}{Bode plot of the loop gain ($L_1(s) = P_1(s) C_1(s)$)  \label{fig:p2:a}}
 		}
 		
 		Recall a typical good loopshape has $|L(j\omega)|$ large at low frequencies and small at high frequency. As observed in \Cref{fig:p2:a}, the loop gain indeed appears such characteristic, hence, it is a "typical good loopshape".
-\end{answer}
 
-\begin{answer}[(b) Bandwidth of the control system]{ans:P2-b}
+\subsection{(b) Bandwidth of the control system \label{ans:P2-b}}
 	From the MATLAB function \verb|`bandwidth'|, we obtained the closed loop bandwidth as $BW = 81.93 \unit{rad/s}$. Since the unstable plant pole is located at $p=4.427 \unit{rad/s}$, the rule of thumb is indeed satisfied:
 	
 	\begin{equation}
 		BW = 81.93 \unit{rad/s} \gg 2p = 2 \times 4.427 \unit{rad/s}
 	\end{equation}
-\end{answer}
 
 \newpage
-\begin{answer}[(c) Robustness analysis of $C_1(s)$]{ans:P2-c}
+\subsection{(c) Robustness analysis of $C_1(s)$ \label{ans:P2-c}}
 	To evaluate the performance of the closed-loop systems for original and modified plant, we shall plot their bode plot and root locus for the open loop, and corresponding closed-loop unit-step response.
 	
 	{	
@@ -344,6 +337,7 @@
       	\captionof{figure}{Characteristic plots with the modified pant ($P_1^{modified}$)  \label{fig:p2:c:siso-p1-mod}}
 	}
 	
+	\clearpage
 	\begin{note}[i) Comments on Modified Plant]{pink}{note:p2:i}
 		As observed in \Cref{fig:p2:c:siso-p1-mod}, the closed-loop system appear to be stable. The step response (also shown in \Cref{fig:p2:c:p1-mod-response} below) becomes under-damped with some oscillations and significant overshoot (which was not observed in \Cref{fig:p2:c:siso-p1}). The phase margin is reduced significantly from $82 \unit{deg}$ to $23 \unit{deg}$. 
 		
@@ -402,7 +396,6 @@
 		As discovered in \Cref{note:p2:i}, the system is stable for that particular case (as proved in \Cref{proof:p2}), but it does not necessarily mean the system is robustly stable for all cases (as \Cref{note:p2:iii} discovered). 
 	\end{note}
 
-\end{answer}
 
 
 
