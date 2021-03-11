@@ -211,20 +211,21 @@ def progress_plot(
     h,
     figsize=(6,6)
 ):
+    xs = list(range(1, 1+len(h.history['accuracy'])))
     # Plot
     fig = plt.figure(figsize=figsize)
     plt.subplot(2, 1, 1)
-    plt.plot(h.history['accuracy'], label="training")
-    plt.plot(h.history['val_accuracy'], label="validation")
+    plt.plot(xs, h.history['accuracy'], label="training")
+    plt.plot(xs, h.history['val_accuracy'], label="validation")
     plt.ylabel("Accuracy")
     plt.xlabel("epoch")
-    plt.xticks(list(range(1, 1+len(h.history['accuracy']))))
+    plt.xticks(xs)
     plt.legend()
 
     plt.subplot(2, 1, 2)
-    plt.plot((h.history['loss']), label="training")
-    plt.plot((h.history['val_loss']), label="validation")
-    plt.xticks(list(range(1, 1+len(h.history['loss']))))
+    plt.plot(xs, h.history['loss'], label="training")
+    plt.plot(xs, h.history['val_loss'], label="validation")
+    plt.xticks(xs)
     plt.ylabel("Loss (cross-entropy)")
     plt.xlabel("epoch")
     plt.legend()

@@ -36,7 +36,7 @@ class SOM:
 
     def imshow(self, data, name:str, save:bool=True):
         fig = plt.figure()
-        plt.imshow(data)
+        plt.imshow(data, interpolation='none')
         if save:
             fig.savefig("{}/{}.png".format(self.path, name), bbox_inches = 'tight')
         if self.verbose:
@@ -82,7 +82,7 @@ class SOM:
                 Nw = np.stack([Nij, Nij, Nij], axis=2) # depth stacking
                 self.w = self.w + alpha_k * np.multiply(Nw, dxw)
 
-            plot_ind = [1, 20, 40, 100, 600]
+            plot_ind = [1, 20, 40, 100, 600, 1000, 1500, 2000]
             if epoch in plot_ind:
                 print("Epoch Number: {}".format(epoch))
                 self.imshow(data=self.w, 
@@ -96,31 +96,31 @@ def hsv2rgb(h,s,v):
 def main():
     ### IMPORT DATA ###
     # manual pick:
-    inputRGB = np.array([
-        [255,0,0],
-        [0,255,0],
-        [0,0,255],
-        [255,255,0],
-        [255,0,255],
-        [0,255,255],
-        [128,128,0],
-        [128,0,128],
-        [0,128,128],
-        [255,128,0],
-        [255,0,128],
-        [128,255,0],
-        [0,255,128],
-        [128,0,255],
-        [0,128,255],
-        [255,20,147],
-        [220,20,60],
-        [255,51,51],
-        [255,153,51],
-        [255,255,51],
-        [51,255,51],
-        [153,255,51],
-        [51,255,153],
-        [51,255,255]])
+    # inputRGB = np.array([
+    #     [255,0,0],
+    #     [0,255,0],
+    #     [0,0,255],
+    #     [255,255,0],
+    #     [255,0,255],
+    #     [0,255,255],
+    #     [128,128,0],
+    #     [128,0,128],
+    #     [0,128,128],
+    #     [255,128,0],
+    #     [255,0,128],
+    #     [128,255,0],
+    #     [0,255,128],
+    #     [128,0,255],
+    #     [0,128,255],
+    #     [255,20,147],
+    #     [220,20,60],
+    #     [255,51,51],
+    #     [255,153,51],
+    #     [255,255,51],
+    #     [51,255,51],
+    #     [153,255,51],
+    #     [51,255,153],
+    #     [51,255,255]])
     # inputRGB = np.array([
     #     [0,0,0],
     #     [255,255,255],
@@ -149,10 +149,10 @@ def main():
     # ])
     
     # randomly generate 24 Colors
-    # inputRGB = []
-    # for i in np.random.uniform(size=24):
-    #     inputRGB.append(list(hsv2rgb(i,1.0,1.0)))
-    # inputRGB = np.array(inputRGB)
+    inputRGB = []
+    for i in np.random.uniform(size=24):
+        inputRGB.append(list(hsv2rgb(i,1.0,1.0)))
+    inputRGB = np.array(inputRGB)
 
     # normalization
     normRGB = inputRGB/255.0
@@ -170,7 +170,7 @@ def main():
         )
         som.learn(
             sigma_0 = s, # [10,40,70]
-            tot_training_epochs= 600
+            tot_training_epochs= 2000
         )
     
 
