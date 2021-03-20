@@ -108,12 +108,12 @@
 % 1. (15 marks) Change the parameters of your classifier and provide a confusion matrix for each of the various classifiers (change C-parameters and kernels for SVM or number of nodes for MLP).
 For this dataset, SVM is chosen to be studied. In order to tune the hyper parameters to find the best model for the dataset, a various combinations of C-parameters and kernels are evaluated for 5-fold cross validation. The 5-fold validation helps to ensure the integrity and stability of the model by comparing its worst, average, and best performance.
 
-\lstinputlisting[language=python, caption=SVM Hyper-parameters Setting, label=code:p1:settings, linerange={31-40}]{../src_code/as2_p1.py}
+\lstinputlisting[language=python, caption=SVM Hyper-parameters Setting, label=code:p1:settings, linerange={54-65}]{../src_code/as2_p1.py}
 
 The detailed implementation can be seen:
-\lstinputlisting[language=python, caption=SVM 10-Fold Hyper Tuning, label=code:p1:settings, linerange={123-192}]{../src_code/as2_p1.py}
+\lstinputlisting[language=python, caption=SVM 10-Fold Hyper Tuning, label=code:p1:settings, linerange={149-219}]{../src_code/as2_p1.py}
 
-As a result, we may get a total of 90 confusion matrices for 16 sets of hyper-parameters and 5 trials each. They are as stated in \Cref{table:confusions:0} - \Cref{table:confusions:16} below:
+As a result, we may get a total of 90 confusion matrices for 16 sets of hyper-parameters and 5 trials each. They are as stated in \Cref{table:confusion:1} - \Cref{table:confusion:16} below:
 \begin{figure}[H]
 \centering
 \subfloat[1:5-Fold]{\includegraphics[height=200px]{../src_code/output/p1/unmodified/Confusion_matrix_[m:unmodified-C:0.1-K:linear-(1:5)]}} \,
@@ -336,6 +336,43 @@ The recall measure is the most important in this problem, since we want to elimi
 	\label{table:performance-grid:worst}
 \end{figure}
 
+\clearpage
+\subsection{Extra Self-studies*}
+We may wonder how do we improve the accuracy? The main strategy is about pre-processing to manipulate the sample data, such as balancing the training dataset, removing outliers, and ensuring the dataset is uncorrelated. For the sake of fun, we start with the study of dataset distribution.
+
+As we may discover in \Cref{fig:p1:distributions}, the dataset appeared to be unbalanced with positive and negative labels, hence we shall balance them by concatenating repetitive dataset in the positive samples.
+\begin{figure}[H]
+\centering
+	\subfloat[Original dataset]{\includegraphics[height=200px]{../src_code/output/p1/balance/Pie_balance_Original_data.png}}\,
+	\subfloat[Balanced dataset]{\includegraphics[height=200px]{../src_code/output/p1/balance/Pie_balance_Balanced_data.png}}
+	\caption{Dataset label distributions}
+	\label{fig:p1:distributions}
+\end{figure}
+
+Let's plot their new performance grids below. As we may find from \Cref{table:balanced:performance-grid:avg} - \Cref{table:balanced:performance-grid:worst}, the overall worst cases are much better than the unbalanced dataset. However, we do see the recall measures may differ depends on the combinations. Hence, further data manipulation is needed, such as the feature reduction is needed. Since the SVM is quite sensitive to outliers, an outlier filter should also be applied to the dataset to increase the performance of the recall measure.
+
+\begin{figure}[H]
+\centering
+	\includegraphics[height=400px]{../src_code/output/p1/balance/Summary_balance_average}
+	\caption{Average performance grid matrices for all 16 combinations (Balanced)}
+	\label{table:balanced:performance-grid:avg}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+	\includegraphics[height=400px]{../src_code/output/p1/balance/Summary_balance_best}
+	\caption{Best performance grid matrices for all 16 combinations (Balanced)}
+	\label{table:balanced:performance-grid:best}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+	\includegraphics[height=400px]{../src_code/output/p1/balance/Summary_balance_worst}
+	\caption{Worst performance grid matrices for all 16 combinations (Balanced)}
+	\label{table:balanced:performance-grid:worst}
+\end{figure}
+
+
 
 %%%%%%%%%%%%%%%%
 %%%%% Ex 2 %%%%%
@@ -384,46 +421,69 @@ Epoch Number: 600
 \subsection{(a): SOM Grids Result (25 marks)}
 % a) (25 marks) Basically, and after training, we need to have as the output of the SOM colors something similar to the picture below, where similar colors cluster around each other’s:
 % Generate, a figure of the original SOM grid (randomly selected) followed by figures of the SOM grid after 20, 40, 100, 600 epochs for various values of s 0 =10, 40,70 .
-
+A random SOM grid is generated initially as seen in \Cref{fig:p2:orig}
 \begin{figure}[H]
 	\center
-	\includegraphics[height=130px]{../src_code/output/p2/w_0}
+	\includegraphics[height=120px]{../src_code/output/p2/w_0}
 	\caption{Original SOM grid (random colors)}
+	\label{fig:p2:orig}
 \end{figure}
 
+A set of 24 colors are randomly selected from the HSV wheels as shown in \Cref{fig:p2:colorbar}
 \begin{figure}[H]
 	\center
 	\includegraphics[height=50px]{../src_code/output/p2/color_bar}
 	\caption{24 randomly selected colors (from HSV wheel to RGB)}
+	\label{fig:p2:colorbar}
 \end{figure}
 
-The resultant SOM grids are as stated in \Cref{table:som} below:
+The resultant SOM grids are summarized in \Cref{table:som} below:
 \begin{longtable}{p{1cm} p{4.5cm} p{4.5cm} p{4.5cm}} \hline
 	%% Header
 	& \textbf{$\sigma_0 = 10$} & \textbf{$\sigma_0 = 40$} & \textbf{$\sigma_0 = 70$}
 	\\ \hline
 	%% Content
+	Epochs = 1 	
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=10]_w_1}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=40]_w_1}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=70]_w_1}} 
+	\\ \hline
 	Epochs = 20 	
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=10]_w_20}} 
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=40]_w_20}} 
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=70]_w_20}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=10]_w_20}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=40]_w_20}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=70]_w_20}} 
 	\\ \hline
 	Epochs = 40 	
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=10]_w_40}} 
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=40]_w_40}} 
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=70]_w_40}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=10]_w_40}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=40]_w_40}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=70]_w_40}} 
 	\\ \hline
 	Epochs = 100 	
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=10]_w_100}} 
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=40]_w_100}} 
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=70]_w_100}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=10]_w_100}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=40]_w_100}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=70]_w_100}} 
 	\\ \hline
 	Epochs = 600 	
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=10]_w_600}} 
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=40]_w_600}} 
-		& \raisebox{-125px}{\includegraphics[height=130px]{../src_code/output/p2/[s=70]_w_600}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=10]_w_600}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=40]_w_600}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=70]_w_600}} 
 	\\ \hline
-	\caption{SOM grid summary table (T: 600 epochs)} % needs to go inside longtable environment
+	Epochs = 1000 	
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=10]_w_1000}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=40]_w_1000}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=70]_w_1000}} 
+	\\ \hline
+	Epochs = 1500	
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=10]_w_1500}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=40]_w_1500}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=70]_w_1500}} 
+	\\ \hline
+	Epochs = 2000 	
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=10]_w_2000}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=40]_w_2000}} 
+		& \raisebox{-120px}{\includegraphics[height=120px]{../src_code/output/p2/[s=70]_w_2000}} 
+	\\ \hline
+	\caption{SOM grid summary table for various $\sigma_0$ at different epochs} % needs to go inside longtable environment
 	\label{table:som}
 \end{longtable}
 
@@ -431,12 +491,11 @@ The resultant SOM grids are as stated in \Cref{table:som} below:
 \subsection{(b): Conclusions (5 marks)}
 % b) (5 marks) In light of the above simulations, draw your conclusions?
 %. https://www.cs.hmc.edu/~kpang/nn/som.html
-The above implementation utilizes an adaptive neighboring, as the nrighborhood variance decreases overtime, resulting a smaller neighbor size. This is done to help neurons initially adjust their weights to roughly where they want to be then allow them to converge without being dramatically influenced by "winning" neurons that are far away. In another world, the early stage is the self-organizing or re-ordering phase, and the later stage is fine tuning phase to make the grid coverge.
+The above implementation utilizes an adaptive neighboring, as the neighborhood variance decreases overtime, resulting a smaller neighbor size. This is done to help neurons initially adjust their weights to roughly where they want to be then allow them to converge without being dramatically influenced by "winning" neurons that are far away. In another world, the early stage is the self-organizing or re-ordering phase, and the later stage is fine tuning phase to make the grid coverge. 
 
-From the above simulation, we may find the SOM is capable to cluster progressively based on the given training dataset without any supervision. The initial variance of the topological neighborhood size ($\sigma_0$) affects the convergence rate of the SOM grid. A smaller initial variance converges slower (or stable equilibrium), but provides a much finer SOM grid with sharp boundaries, as shown by the column for $\sigma_0 = 10$. A larger variance converges much faster, but provides a coarser SOM grid with blended margins, as shown by the column for $\sigma_0 = 70$. We may find the medium variance of $\sigma_0 = 40$ between the two extremes provided the best outcome of the SOM grid, as it quickly reaches equilibrium initially, and provides a finer final SOM grid without loosing too much color resolution. 
+From the above simulation as tabulated in \Cref{table:som}, we may find the SOM is capable to cluster progressively based on the given training dataset without any supervision. The initial variance of the topological neighborhood size ($\sigma_0$) affects the convergence rate and granularity of the SOM grid. A smaller initial variance may potentially not utilize all the parameters on the map (as seen at "epochs=1"), resulting an unstable grid initially. But it converges to the final stability much faster, and provides a much granular-looking SOM grid with sharp boundaries in result of a smaller neighborhood size, as shown by the column for $\sigma_0 = 10$. A larger initial variance converges much slower to the final stability, but provides a more even and generalized SOM grid with blended margins, as shown by the column for $\sigma_0 = 70$. We may find the medium variance of $\sigma_0 = 40$ between the two extremes provided the best outcome of the SOM grid, as it quickly reaches equilibrium quick enough without loosing any color varieties, and provides a finer final SOM grid that is more generalized. 
 
-In short, the magical SOM performance depends on the initial neighbouring size for the adaptive neighborhood function (Gaussian specifically in our case). A large variance encourages a faster stability but uneven result. A smaller variance may cause the map incapable to reach stability quickly enough resulting an incomplete SOM grid, where partial regions of the SOM map is barely utilized. 
-
+In short, the magical SOM performance depends on the initial neighbouring size for the adaptive neighborhood function (Gaussian specifically in our case). The neighborhood size essentially determines number of neurons being utilized, which determines the granurality or the scale of the resulting model. A smaller variance provides a less generalized model but more accurate boundaries, as it overfits with a sharp decision boundaries. A larger variance provides a more generalized model, but converges to the final equilibrium much slower and provides less accuracy. Its two contradictory behaviours, where we either gain generalization or accuracy and loose the other as the trade of.
 
 
 %%%%%%%%%%%%%%%%
@@ -497,44 +556,9 @@ In short, the magical SOM performance depends on the initial neighbouring size f
 
 \subsection{(a): Result and comment (training and testing accuracy) (15 marks)}
 % a) (15 marks) Report the training and testing accuracy for all three networks and comment on the performance of the MLP vs CNNs.
-\begin{figure}[H]
-	\center
-	\includegraphics[height=300px]{../src_code/output/p3/progress_MLP.}
-	\caption{MLP Progress}
-\end{figure}
-\begin{figure}[H]
-	\center
-	\includegraphics[height=300px]{../src_code/output/p3/progress_CNN-1.}
-	\caption{CNN-1 Progress}
-\end{figure}
-\begin{figure}[H]
-	\center
-	\includegraphics[height=300px]{../src_code/output/p3/progress_CNN-2.}
-	\caption{CNN-2 Progress}
-\end{figure}
+After kicking off the automation, the output can be found in \Cref{output:p3}. 
 
-
-\subsection{(b): Plot training and validation curves (15 marks)}
-% b) (15 marks) Plot the training and validation curves for the two CNNs and comment on the output. How does the training time compare for each of the CNNs? How does the different architectures influence these results? What do you expect the accuracies to be if the networks were trained for more epochs?
-\begin{figure}[H]
-	\center
-	\subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[airplane]}} \\
-	\subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[airplane]}} \\
-	\subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[airplane]}}
-	\caption{Testing Sample}
-\end{figure}
-\begin{figure}[H]
-	\center
-	\subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[automobile]}} \\
-	\subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[automobile]}} \\
-	\subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[automobile]}}
-	\caption{Testing Sample}
-\end{figure}
-
-
-
-
-\begin{lstlisting}[style=mystyle:output]
+\begin{lstlisting}[style=mystyle:output, label=output:p3]
 # jaku @ Jacks-MacBook-Pro in ~/JX-Platform/Github/UW__4B_Individual_Works/ECE_457B/A2/src_code on git:main x [20:24:23]
 $ python as2_p3.py
 2021-03-10 20:29:03.468760: I tensorflow/compiler/jit/xla_cpu_device.cc:41] Not creating XLA devices, tf_xla_enable_xla_devices not set
@@ -552,7 +576,7 @@ flatten (Flatten)            (None, 3072)              0
 _________________________________________________________________
 dense (Dense)                (None, 512)               1573376
 _________________________________________________________________
-dense_1 (Dense)              (None, 10)                5130
+dense_1 (Dense)              (None, 10)                5120
 =================================================================
 Total params: 1,578,506
 Trainable params: 1,578,506
@@ -569,7 +593,7 @@ flatten_1 (Flatten)          (None, 57600)             0
 _________________________________________________________________
 dense_2 (Dense)              (None, 512)               29491712
 _________________________________________________________________
-dense_3 (Dense)              (None, 10)                5130
+dense_3 (Dense)              (None, 10)                5120
 =================================================================
 Total params: 29,498,634
 Trainable params: 29,498,634
@@ -598,7 +622,7 @@ dense_5 (Dense)              (None, 512)               262656
 _________________________________________________________________
 dropout_1 (Dropout)          (None, 512)               0
 _________________________________________________________________
-dense_6 (Dense)              (None, 10)                5130
+dense_6 (Dense)              (None, 10)                5120
 =================================================================
 Total params: 1,486,666
 Trainable params: 1,486,666
@@ -649,6 +673,201 @@ ic| h.history['val_accuracy'][-1]: 0.5372999906539917
 ic| h.history['loss'][-1]: 1.1485614776611328
 ic| h.history['val_loss'][-1]: 1.2754000425338745
 \end{lstlisting}
+
+The final training accuracy and testing accuracy can be then tabulated in \Cref{table:p3:accuracy}. 
+
+\begin{table}[h!]
+  \begin{center}
+    \caption{Final training and testing accuracy and losses after 5 epochs}
+    \label{table:p3:accuracy}
+    \begin{tabular}{|l|c|c|c|}
+      \hline 
+      & \textbf{MLP} & \textbf{CNN-1} & \textbf{CNN-2}\\
+      \hline 
+      \hline 
+      \textbf{Training Accuracy} & 36.90\% & 84.04\% & 58.78\% \\
+      \hline 
+      \textbf{Testing Accuracy} & 36.57\% & 50.52\% & 53.73\% \\
+      \hline 
+      \textbf{Training Loss} & 1.7567 & 0.5051 & 1.1486 \\
+      \hline 
+      \textbf{Testing Loss} & 1.7565 & 1.6049 & 1.2754 \\
+      \hline 
+      \hline 
+    \end{tabular}
+  \end{center}
+\end{table}
+
+% comment on the performance of the MLP vs CNNs.
+As observed in \Cref{table:p3:accuracy}, It appears that the MLP has the worst performance for both training and validation, where CNN-2 has the best overall performance for the testing. To note, CNN-1 appears to have an extreme high training accuracy, but its testing accuracy is quite dramatically different from the training accuracy, which is a good indication of overfitting. Hence, CNN-1 model is not generalized. As a result, CNN-2 is a better performing and more generalized model among all three candidates. 
+
+\newpage
+\subsection{(b): Plot training and validation curves (15 marks)}
+\subsubsection{Training and validation curves}
+% b) (15 marks) Plot the training and validation curves for the two CNNs and comment on the output. How does the training time compare for each of the CNNs? How does the different architectures influence these results? What do you expect the accuracies to be if the networks were trained for more epochs?
+Let's plot the training and validation curves in \Cref{fig:p3:progress}. As we may see from the \Cref{fig:p3:progress:CNN2} for CNN-2, the validation loss goes up as the training losses reduced, which is a good indication that the model is simply overfitting. Whereas, the MLP and CNN-2 is progressively improving. To note, CNN-2 provides much smoother accuracy and loss curves, this could be a good indication that CNN-2 is optimizing the weight much better than the MLP with less struggles.
+\begin{figure}[H]
+	\center
+	\subfloat[MLP\label{fig:p3:progress:MLP}]{\includegraphics[height=220px]{../src_code/output/p3/progress_MLP.}} \,
+	\subfloat[CNN-1\label{fig:p3:progress:CNN1}]{\includegraphics[height=220px]{../src_code/output/p3/progress_CNN-1.}}\,
+	\subfloat[CNN-2\label{fig:p3:progress:CNN2}]{\includegraphics[height=220px]{../src_code/output/p3/progress_CNN-2.}} 
+	\caption{Training and validation progress curves}
+	\label{fig:p3:progress}
+\end{figure}
+
+\subsubsection{Training time and training parameters}
+%ow does the training time compare for each of the CNNs?
+From the output in \Cref{output:p3}, we may tabulate the training time for each epochs for all the models as shown in \Cref{table:p3:time} below. As we may seen, the CNN-1 took the longest to run as it has the most trainable parameters as tabulated in \Cref{table:p3:params}. The CNN-2 takes 4 times of the MLP operation, although they have similar amount of the trainable parameters. This is mainly because the MLP has a simple one hidden layer, whereas the CNN2 has much more layers of operations, resulting a slower training performance due to computation complexity.
+\begin{table}[h!]
+  \begin{center}
+    \caption{Training time}
+    \label{table:p3:time}
+    \begin{tabular}{|l|c|c|c|}
+      \hline 
+      & \textbf{MLP} & \textbf{CNN-1} & \textbf{CNN-2}\\
+      \hline 
+      \hline 
+		\textbf{Epoch 1/5} & 3s & 68s & 16s \\
+		\hline
+		\textbf{Epoch 2/5} & 2s & 76s & 16s \\
+		\hline
+		\textbf{Epoch 3/5} & 3s & 79s & 15s \\
+		\hline
+		\textbf{Epoch 4/5} & 3s & 75s & 15s \\
+		\hline
+		\textbf{Epoch 5/5} & 3s & 69s & 15s \\
+		\hline
+      \hline 
+    \end{tabular}
+  \end{center}
+\end{table}
+
+
+\begin{table}[h!]
+  \begin{center}
+    \caption{Number of training parameters}
+    \label{table:p3:params}
+    \begin{tabular}{|l|c|c|c|}
+      \hline 
+      & \textbf{MLP} & \textbf{CNN-1} & \textbf{CNN-2}\\
+      \hline 
+      \hline 
+		\textbf{Parameters} & 1,578,506 & 9,498,634 & 1,486,666 \\
+		\hline
+      \hline 
+    \end{tabular}
+  \end{center}
+\end{table}
+
+
+\subsubsection{Test samples results}
+So let's feed in some of the test samples as shown in \Cref{fig:p3:sample_imgs}.
+\begin{figure}[H]
+	\center
+	\includegraphics[height=300px]{../src_code/output/p3/sample_imgs.}
+	\caption{Sample of Testing Images}
+	\label{fig:p3:sample_imgs}
+\end{figure}
+
+The resultant outcomes of probability and input data are listed below from \Cref{fig:p3:result:airplane} to \Cref{fig:p3:result:truck}.
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[airplane]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[airplane]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[airplane]}}
+    \caption{Testing Sample [airplane]}
+    \label{fig:p3:result:airplane}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[automobile]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[automobile]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[automobile]}}
+    \caption{Testing Sample [automobile]}
+    \label{fig:p3:result:automobile}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[bird]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[bird]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[bird]}}
+    \caption{Testing Sample [bird]}
+    \label{fig:p3:result:bird}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[cat]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[cat]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[cat]}}
+    \caption{Testing Sample [cat]}
+    \label{fig:p3:result:cat}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[deer]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[deer]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[deer]}}
+    \caption{Testing Sample [deer]}
+    \label{fig:p3:result:deer}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[dog]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[dog]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[dog]}}
+    \caption{Testing Sample [dog]}
+    \label{fig:p3:result:dog}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[frog]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[frog]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[frog]}}
+    \caption{Testing Sample [frog]}
+    \label{fig:p3:result:frog}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[horse]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[horse]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[horse]}}
+    \caption{Testing Sample [horse]}
+    \label{fig:p3:result:horse}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[ship]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[ship]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[ship]}}
+    \caption{Testing Sample [ship]}
+    \label{fig:p3:result:ship}
+\end{figure}
+
+\begin{figure}[H]
+    \center
+    \subfloat[MLP]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_MLP[truck]}} \\
+    \subfloat[CNN-1]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-1[truck]}} \\
+    \subfloat[CNN-2]{\includegraphics[height=200px]{../src_code/output/p3/test_sample_prediction_CNN-2[truck]}}
+    \caption{Testing Sample [truck]}
+    \label{fig:p3:result:truck}
+\end{figure}
+
+\subsubsection{Summary and expectations}
+% How does the different architectures influence these results?
+% What do you expect the accuracies to be if the networks were trained for more epochs?
+As a result, the different architectures may result different performance. A simple MLP may not be able to take benefits from the spatial correlation in the images, resulting a model with same amount of parameters but with worst performance overall, and it appears to hard to train the MLP as seen its struggles from the training and validation progress curves from \Cref{fig:p3:progress:MLP}. CNN-1 seems to overfit the data due to large amount of training parameters. As we may discover from the testing sample results from the above, it is overly confident in automobile sample (\Cref{fig:p3:result:automobile}) than other classifiers, but it misclassifies the ship also as the automobile (\Cref{fig:p3:result:ship}) among all classifiers. CNN-2 seems to be more generalized, although it still makes mistakes due to small amount of training time.
+
+I would expect the accuracies improves as CNN-2 trained for more epochs. CNN-1 would keep overfitting. MLP may improve in a much slower rate than CNN-2 and eventually reaches the best possible accuracy for itself and starts overfit. Since the MLP has too many redundancy weights since it did not take advantages of the spatial coordination, and the model is just too simple for a higher accuracy. CNN-2 would reach the highest performance among all three models, since it utilizes spatial redundancy through convolution, pooling for parameterization reduction, and dropouts for reducing the risk of vanishing descent. As a result, the CNN-2 is mostly prune to overfitting, and it is considerable most potential model among three architectures.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ************************************************************************** %%
