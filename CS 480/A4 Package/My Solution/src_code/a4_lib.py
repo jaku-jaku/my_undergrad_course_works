@@ -11,7 +11,9 @@ import torch as t
 import torchvision.transforms as ttf
 from torchvision.datasets import MNIST
 
-
+#######################
+##### Functions #######
+#######################
 def get_files(DIR:str, file_end:str=".png"):
     return [ os.path.join(DIR, f) for f in os.listdir(DIR) if f.endswith(file_end) ]
 
@@ -31,6 +33,19 @@ def create_folder(DIR:str, clean:bool=False):
         filelist = get_files(DIR)
         for f in filelist:
             os.remove(f)
+
+#######################
+######## ENUM #########
+#######################
+class VerboseLevel(IntEnum):
+    NONE    = auto()
+    LOW     = auto()
+    MEDIUM  = auto()
+    HIGH    = auto()
+
+#############################
+######## DATA CLASS #########
+#############################
 
 @dataclass
 class ProgressReport:
@@ -70,16 +85,17 @@ class ProgressReport:
         self.history["test_time"]     .append(test_time    )
         self.history["learning_rate"] .append(learning_rate)
         if verbose:
-            print('    epoch {} > Training: [LOSS: {:.4f} | ACC: {:.4f}] | Testing: [LOSS: {:.4f} | ACC: {:.4f}] Ellapsed: {:.2f}+{:.2f} s | rate:{:.5f}'.format(
+            print('    epoch {} > Training: [LOSS: {:.4f} | ACC: {:.4f}] | Testing: [LOSS: {:.4f} | ACC: {:.4f}] Ellapsed: {:.2f} s | rate:{:.5f}'.format(
                 epoch + 1, train_loss, train_acc, test_loss, test_acc, train_time, test_time, learning_rate
             ))
 
 
     def output_progress_plot(
         self,
-        figsize = (15,12),
-        OUT_DIR = "",
-        tag     = ""
+        figsize       = (15,12),
+        OUT_DIR       = "",
+        tag           = "",
+        verbose_level = VerboseLevel.MEDIUM,
     ):
         xs = self.history['epoch']
         # Plot
@@ -99,52 +115,156 @@ class ProgressReport:
         plt.ylabel("Loss (cross-entropy)")
         plt.xlabel("epoch")
         plt.legend()
-        fig.savefig("{}/training_progress[{}].png".format(OUT_DIR, tag), bbox_inches = 'tight')
-        plt.close(fig)
 
+        fig.savefig("{}/training_progress[{}].png".format(OUT_DIR, tag), bbox_inches = 'tight')
+        if verbose_level >= VerboseLevel.MEDIUM:
+            plt.show()
+        else:
+            plt.close(fig)
         return fig
+
+
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=1.):
+        self.std = std
+        self.mean = mean
         
-class VerboseLevel(IntEnum):
-    NONE    = auto()
-    LOW     = auto()
-    MEDIUM  = auto()
-    HIGH    = auto()
+    def __call__(self, tensor):
+        return tensor + t.randn(tensor.size()) * self.std + self.mean
+    
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
 ################################
 ######## EX 1 : Helper #########
 ################################
-class A4_EX1_CNN_HELPER:
+class A4_EX1_CNN_HELPER:        
     # LOAD DATASET: --- ----- ----- ----- ----- ----- ----- ----- ----- #
     # Definition:
     @staticmethod
     def load_mnist_data(
-        batch_size: int, 
-        resize    : Optional[tuple] = None,
-        n_workers : int  = 1,
-        root      : str = "./data/",
+        batch_size   : int, 
+        resize       : Optional[tuple] = None,
+        n_workers    : int  = 1,
+        root         : str  = "./data/",
+        augmentation : List[str] = ["HFlip", "VFlip", "GAUSS-0.01"],
+        shuffle      : bool = True,
+        train_set    : bool = True,
     ):
         print("=== Loading Data ... ")
         trans = []
 
         # Image augmentation
         if resize:
+            print("> Resized to {}".format(resize))
             trans.append(ttf.Resize(size=resize))
-        trans.append(ttf.RandomHorizontalFlip())
+        if augmentation is not None:
+            print("> Augmentation: {}".format(augmentation))
+            if "HFlip" in augmentation:
+                trans.append(ttf.RandomHorizontalFlip())
+            if "VFlip" in augmentation:
+                trans.append(ttf.RandomVerticalFlip())
+
         trans.append(ttf.ToTensor())
+
+        # Gaussian Noise
+        if augmentation is not None:
+            # Gaussian Noise
+            if "GAUSS-0.01" in augmentation:
+                trans.append(AddGaussianNoise(std=0.01))
+            elif "GAUSS-0.1" in augmentation:
+                trans.append(AddGaussianNoise(std=0.1))
+            elif "GAUSS-1" in augmentation:
+                trans.append(AddGaussianNoise(std=1))
+
         transform = ttf.Compose(trans)
         
-        data_train = MNIST(root=root, train=True, download=True, transform=transform)
-        data_test = MNIST(root=root, train=False, download=True, transform=transform)
-        
-        train_dataset = t.utils.data.DataLoader(data_train, batch_size=batch_size, shuffle=True, num_workers=n_workers)
-        test_dataset = t.utils.data.DataLoader(data_test, batch_size=batch_size, shuffle=False, num_workers=n_workers)
+        data = MNIST(root=root, train=train_set, download=True, transform=transform)
+        dataset = t.utils.data.DataLoader(data, batch_size=batch_size, shuffle=shuffle, num_workers=n_workers)
 
-        print("=== Loading Data [x] ===")
-        return train_dataset, test_dataset
+        print("=== Data Loaded [{}] ===".format("Testing" if train_set else "Training"))
+        return dataset
+
+    # TESTING:  ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+    @staticmethod
+    def test(
+        test_dataset, 
+        net, 
+        loss_func,
+        max_data_samples: Optional[int] = None,
+        verbose_level: VerboseLevel = VerboseLevel.LOW,
+    ):
+        if verbose_level >= VerboseLevel.LOW:
+            print("  >> Testing (wip)")
+
+        test_loss_sum, test_acc_sum, test_n, test_start = 0.0, 0.0, 0, time.time()
+
+        for i, (X, y) in enumerate(test_dataset):
+            if max_data_samples is not None:
+                if i >= max_data_samples:
+                    break
+                if verbose_level >= VerboseLevel.HIGH:
+                    print("   >[{}/{}]".format(i, max_data_samples),  end='\r')
+            elif verbose_level >= VerboseLevel.HIGH:
+                print("   >[{}/{}]".format(i, len(test_dataset)),  end='\r')
+            # Predict:
+            y_prediction = net(X)
+            # Calculate loss
+            loss = loss_func(y_prediction, y)
+            # Compute Accuracy
+            test_loss_sum += loss.item()
+            test_acc_sum += (y_prediction.argmax(dim=1) == y).sum().item()
+            test_n += y.shape[0]
+
+        test_loss = test_loss_sum/test_n
+        test_acc = test_acc_sum/test_n
+        test_ellapse = time.time() - test_start
+
+        return test_loss, test_acc, test_n, test_ellapse
 
     # TRAINING: ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     @staticmethod
     def train(
+        train_dataset, 
+        net, 
+        optimizer, 
+        loss_func,
+        max_data_samples: Optional[int] = None,
+        verbose_level: VerboseLevel = VerboseLevel.LOW,
+    ):
+        # Training:
+        if verbose_level >= VerboseLevel.LOW:
+            print("  >> Learning (wip)")
+        train_loss_sum, train_acc_sum, train_n, train_start = 0.0, 0.0, 0, time.time()
+        for i, (X, y) in enumerate(train_dataset):
+            if max_data_samples is not None:
+                if i >= max_data_samples:
+                    break
+                if verbose_level >= VerboseLevel.HIGH:
+                    print("   >[{}/{}]".format(i, max_data_samples), end='\r')
+            elif verbose_level >= VerboseLevel.HIGH:
+                print("   >[{}/{}]".format(i, len(train_dataset)),  end='\r')
+            # Predict:
+            y_prediction = net(X)
+            # Calculate loss
+            loss = loss_func(y_prediction, y)
+            # Gradient descent > [ LEARNING ]
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            # Compute Accuracy
+            train_loss_sum += loss.item()
+            train_acc_sum += (y_prediction.argmax(dim=1) == y).sum().item()
+            train_n += y.shape[0]
+        
+        train_loss = train_loss_sum/train_n
+        train_acc = train_acc_sum/train_n
+        train_ellapse = time.time() - train_start
+
+        return train_loss, train_acc, train_n, train_ellapse
+
+    @staticmethod
+    def train_and_monitor(
         train_dataset, 
         test_dataset, 
         optimizer, 
@@ -161,63 +281,35 @@ class A4_EX1_CNN_HELPER:
             if verbose_level >= VerboseLevel.LOW:
                 print("> epoch {}/{}:".format(epoch + 1, num_epochs))
             
-            # Training:
-            if verbose_level >= VerboseLevel.LOW:
-                print("  >> Learning (wip)")
-            train_loss_sum, train_acc_sum, train_n, train_start = 0.0, 0.0, 0, time.time()
-            for i, (X, y) in enumerate(train_dataset):
-                if max_data_samples is not None:
-                    if i >= max_data_samples:
-                        break
-                    if verbose_level >= VerboseLevel.HIGH:
-                        print("   >[{}/{}]".format(i, max_data_samples), end='\r')
-                elif verbose_level >= VerboseLevel.HIGH:
-                    print("   >[{}/{}]".format(i, len(train_dataset)),  end='\r')
-                # Predict:
-                y_prediction = net(X)
-                # Calculate loss
-                loss = loss_func(y_prediction, y)
-                # Gradient descent > [ LEARNING ]
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                # Compute Accuracy
-                train_loss_sum += loss.item()
-                train_acc_sum += (y_prediction.argmax(dim=1) == y).sum().item()
-                train_n += y.shape[0]
+            # Train:
+            train_loss, train_acc, train_n, train_ellapse = A4_EX1_CNN_HELPER.train(
+                train_dataset = train_dataset, 
+                net = net, 
+                optimizer = optimizer, 
+                loss_func = loss_func,
+                max_data_samples = max_data_samples,
+                verbose_level = verbose_level
+            )
             
             # Testing:
-            if verbose_level >= VerboseLevel.LOW:
-                print("  >> Testing (wip)")
-            test_loss_sum, test_acc_sum, test_n, test_start = 0.0, 0.0, 0, time.time()
-            for i, (X, y) in enumerate(test_dataset):
-                if max_data_samples is not None:
-                    if i >= max_data_samples:
-                        break
-                    if verbose_level >= VerboseLevel.HIGH:
-                        print("   >[{}/{}]".format(i, max_data_samples),  end='\r')
-                elif verbose_level >= VerboseLevel.HIGH:
-                    print("   >[{}/{}]".format(i, len(test_dataset)),  end='\r')
-                # Predict:
-                y_prediction = net(X)
-                # Calculate loss
-                loss = loss_func(y_prediction, y)
-                # Compute Accuracy
-                test_loss_sum += loss.item()
-                test_acc_sum += (y_prediction.argmax(dim=1) == y).sum().item()
-                test_n += y.shape[0]
+            test_loss, test_acc, test_n, test_ellapse = A4_EX1_CNN_HELPER.test(
+                test_dataset = test_dataset, 
+                net = net, 
+                loss_func = loss_func,
+                max_data_samples = max_data_samples,
+                verbose_level = verbose_level
+            )
 
             # Store
             report.append(
                 epoch         = epoch,
-                train_loss    = train_loss_sum / train_n,
-                train_acc     = train_acc_sum / train_n,
-                train_time    = train_start - test_start,
-                test_loss     = test_loss_sum / test_n,
-                test_acc      = test_acc_sum / test_n,
-                test_time     = test_start - time.time(),
+                train_loss    = train_loss,
+                train_acc     = train_acc,
+                train_time    = train_ellapse,
+                test_loss     = test_loss,
+                test_acc      = test_acc,
+                test_time     = test_ellapse,
                 learning_rate = optimizer.param_groups[0]["lr"],
                 verbose       = (verbose_level >= VerboseLevel.MEDIUM)
             )
         return report
-        
