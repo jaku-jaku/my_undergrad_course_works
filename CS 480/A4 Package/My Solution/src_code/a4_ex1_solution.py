@@ -105,7 +105,7 @@ def solve_a4_ex1(
     )
 
     # output state:
-    t.save(MODEL_DICT["VGG11"].state_dict(), "%s/last_{}.pth"%(OUT_DIR_E1, "_".join(TRAINING_AUG)))
+    t.save(MODEL_DICT["VGG11"], "{}/last_{}.pt".format(OUT_DIR_E1, "_".join(TRAINING_AUG)))
 
     # EVALUATE: --- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     # P4.2
