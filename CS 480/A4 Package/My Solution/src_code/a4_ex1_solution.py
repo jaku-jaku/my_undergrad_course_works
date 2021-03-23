@@ -130,7 +130,7 @@ def solve_a4_ex1(
 
         test_loss, test_acc, test_n, test_ellapse = a4_lib.A4_EX1_CNN_HELPER.test(
             device        = device,
-            test_dataset  = test_dataset,
+            test_dataset  = test_dataset_aug,
             loss_func     = CrossEntropyLoss(),
             net           = MODEL_DICT["VGG11"], 
             verbose_level = VERBOSE_LEVEL,
