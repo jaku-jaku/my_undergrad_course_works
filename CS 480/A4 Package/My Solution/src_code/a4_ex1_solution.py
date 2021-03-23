@@ -104,7 +104,7 @@ def solve_a4_ex1(
     )
     # P4.3 - test augmented dataset:
     for augmentation in ["HFlip", "VFlip", "GAUSS-0.01", "GAUSS-0.1", "GAUSS-1"]:
-        if verbose_level >= a4_lib.VerboseLevel.LOW:
+        if VERBOSE_LEVEL >= a4_lib.VerboseLevel.LOW:
             print("==== P4.3 : Test: {}".format(augmentation))
         
         test_dataset_aug  = a4_lib.A4_EX1_CNN_HELPER.load_mnist_data(
@@ -125,7 +125,7 @@ def solve_a4_ex1(
         )
 
         # report:
-        if verbose_level >= a4_lib.VerboseLevel.MEDIUM:
-            print("> [{}] test_loss:{}, test_acc:{}, test_n:{}, test_ellapse:{}".format(
+        if VERBOSE_LEVEL >= a4_lib.VerboseLevel.MEDIUM:
+            print("> [{}] test_loss: {}, test_acc: {}, test_n: {}, test_ellapse: {}".format(
                 augmentation, test_loss, test_acc, test_n, test_ellapse
             ))
