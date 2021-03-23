@@ -334,7 +334,7 @@ class A4_EX1_CNN_HELPER:
 
             # Store
             report.append(
-                epoch         = epoch,
+                epoch         = epoch + 1,
                 train_loss    = train_loss,
                 train_acc     = train_acc,
                 train_time    = train_ellapse,
