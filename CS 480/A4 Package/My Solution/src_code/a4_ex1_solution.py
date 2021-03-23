@@ -61,6 +61,16 @@ def solve_a4_ex1(
             ),
     }
 
+    # check device:
+    # hardware-acceleration
+    device = None
+    if t.cuda.is_available():
+        print("[ALERT] Attempt to use GPU => CUDA:0")
+        device = t.device("cuda:0")
+    else:
+        print("[ALERT] GPU not found, use CPU!")
+        device =  t.device("cpu")
+        
     # Loading training dataset:
     train_dataset = a4_lib.A4_EX1_CNN_HELPER.load_mnist_data(
         batch_size   = BATCH_SIZE, 
@@ -82,6 +92,7 @@ def solve_a4_ex1(
     # TRAIN: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     # train & evaulate:
     report = a4_lib.A4_EX1_CNN_HELPER.train_and_monitor(
+        device        = device,
         train_dataset = train_dataset, 
         test_dataset  = test_dataset,
         loss_func     = CrossEntropyLoss(),
@@ -117,6 +128,7 @@ def solve_a4_ex1(
         )
 
         test_loss, test_acc, test_n, test_ellapse = a4_lib.A4_EX1_CNN_HELPER.test(
+            device        = device,
             test_dataset  = test_dataset,
             loss_func     = CrossEntropyLoss(),
             net           = MODEL_DICT["VGG11"], 

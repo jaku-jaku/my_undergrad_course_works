@@ -188,6 +188,7 @@ class A4_EX1_CNN_HELPER:
     # TESTING:  ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     @staticmethod
     def test(
+        device,
         test_dataset, 
         net, 
         loss_func,
@@ -207,6 +208,12 @@ class A4_EX1_CNN_HELPER:
                     print("   >[{}/{}]".format(i, max_data_samples),  end='\r')
             elif verbose_level >= VerboseLevel.HIGH:
                 print("   >[{}/{}]".format(i, len(test_dataset)),  end='\r')
+            
+            # hardware-acceleration
+            if device != None:
+                X = X.to(device)
+                y = y.to(device)
+
             # Predict:
             y_prediction = net(X)
             # Calculate loss
@@ -225,6 +232,7 @@ class A4_EX1_CNN_HELPER:
     # TRAINING: ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     @staticmethod
     def train(
+        device,
         train_dataset, 
         net, 
         optimizer, 
@@ -244,6 +252,12 @@ class A4_EX1_CNN_HELPER:
                     print("   >[{}/{}]".format(i, max_data_samples), end='\r')
             elif verbose_level >= VerboseLevel.HIGH:
                 print("   >[{}/{}]".format(i, len(train_dataset)),  end='\r')
+            
+            # hardware-acceleration
+            if device != None:
+                X = X.to(device)
+                y = y.to(device)
+
             # Predict:
             y_prediction = net(X)
             # Calculate loss
@@ -265,6 +279,7 @@ class A4_EX1_CNN_HELPER:
 
     @staticmethod
     def train_and_monitor(
+        device,
         train_dataset, 
         test_dataset, 
         optimizer, 
@@ -283,16 +298,18 @@ class A4_EX1_CNN_HELPER:
             
             # Train:
             train_loss, train_acc, train_n, train_ellapse = A4_EX1_CNN_HELPER.train(
+                device = device,
                 train_dataset = train_dataset, 
                 net = net, 
                 optimizer = optimizer, 
                 loss_func = loss_func,
                 max_data_samples = max_data_samples,
-                verbose_level = verbose_level
+                verbose_level = verbose_level,
             )
             
             # Testing:
             test_loss, test_acc, test_n, test_ellapse = A4_EX1_CNN_HELPER.test(
+                device = device,
                 test_dataset = test_dataset, 
                 net = net, 
                 loss_func = loss_func,
