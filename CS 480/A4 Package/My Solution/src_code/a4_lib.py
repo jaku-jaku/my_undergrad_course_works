@@ -204,6 +204,7 @@ class A4_EX1_CNN_HELPER:
 
         test_loss_sum, test_acc_sum, test_n, test_start = 0.0, 0.0, 0, time.time()
 
+        batch_count = 0
         for i, (X, y) in enumerate(test_dataset):
             if max_data_samples is not None:
                 if i >= max_data_samples:
@@ -226,9 +227,10 @@ class A4_EX1_CNN_HELPER:
             test_loss_sum += loss.item()
             test_acc_sum += (y_prediction.argmax(dim=1) == y).sum().item()
             test_n += y.shape[0]
+            batch_count += 1
 
-        test_loss = test_loss_sum/test_n
-        test_acc = test_acc_sum/test_n
+        test_loss = test_loss_sum / batch_count
+        test_acc = test_acc_sum / test_n
         test_ellapse = time.time() - test_start
 
         return test_loss, test_acc, test_n, test_ellapse
@@ -248,6 +250,7 @@ class A4_EX1_CNN_HELPER:
         if verbose_level >= VerboseLevel.LOW:
             print("  >> Learning (wip)")
         train_loss_sum, train_acc_sum, train_n, train_start = 0.0, 0.0, 0, time.time()
+        batch_count = 0
         for i, (X, y) in enumerate(train_dataset):
             if max_data_samples is not None:
                 if i >= max_data_samples:
@@ -274,9 +277,10 @@ class A4_EX1_CNN_HELPER:
             train_loss_sum += loss.item()
             train_acc_sum += (y_prediction.argmax(dim=1) == y).sum().item()
             train_n += y.shape[0]
-        
-        train_loss = train_loss_sum/train_n
-        train_acc = train_acc_sum/train_n
+            batch_count += 1
+
+        test_loss = test_loss_sum / batch_count
+        train_acc = train_acc_sum / train_n
         train_ellapse = time.time() - train_start
 
         return train_loss, train_acc, train_n, train_ellapse
