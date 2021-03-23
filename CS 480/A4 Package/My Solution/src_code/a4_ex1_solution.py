@@ -78,7 +78,7 @@ def solve_a4_ex1(
         resize       = IMG_SIZE, # NOTE: make sure you understand why
         n_workers    = 1,
         augmentation = TRAINING_AUG, # Options: ["HFlip", "VFlip", "GAUSS-0.01"],
-        shuffle      = False,
+        shuffle      = True,
         train_set    = True,
     )
     test_dataset  = a4_lib.A4_EX1_CNN_HELPER.load_mnist_data(
@@ -86,7 +86,7 @@ def solve_a4_ex1(
         resize       = IMG_SIZE, # NOTE: make sure you understand why
         n_workers    = 1,
         augmentation = None, # Options: ["HFlip", "VFlip", "GAUSS-0.01"],
-        shuffle      = True,
+        shuffle      = False,
         train_set    = False,
     )
 
@@ -121,10 +121,10 @@ def solve_a4_ex1(
         
         test_dataset_aug  = a4_lib.A4_EX1_CNN_HELPER.load_mnist_data(
             batch_size   = BATCH_SIZE, 
-            resize       = IMG_SIZE, # NOTE: make sure you understand why
+            resize       = IMG_SIZE,
             n_workers    = 1,
-            augmentation = augmentation,
-            shuffle      = True,
+            augmentation = [augmentation],
+            shuffle      = False,
             train_set    = False,
         )
 
@@ -142,3 +142,5 @@ def solve_a4_ex1(
             print("> [{}] test_loss: {}, test_acc: {}, test_n: {}, test_ellapse: {}".format(
                 augmentation, test_loss, test_acc, test_n, test_ellapse
             ))
+    
+    return MODEL_DICT["VGG11"]
