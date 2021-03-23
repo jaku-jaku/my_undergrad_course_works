@@ -147,7 +147,7 @@ class A4_EX1_CNN_HELPER:
         resize       : Optional[tuple] = None,
         n_workers    : int  = 1,
         root         : str  = "./data/",
-        augmentation : List[str] = ["HFlip", "VFlip", "GAUSS-0.01"],
+        augmentation : List[str] = ["HFlip-1", "VFlip-1", "GAUSS-0.01"],
         shuffle      : bool = True,
         train_set    : bool = True,
     ):
@@ -162,8 +162,12 @@ class A4_EX1_CNN_HELPER:
             print("> Augmentation: {}".format(augmentation))
             if "HFlip" in augmentation:
                 trans.append(ttf.RandomHorizontalFlip())
+            elif "HFlip-1" in augmentation:
+                trans.append(ttf.RandomHorizontalFlip(p=1))
             if "VFlip" in augmentation:
                 trans.append(ttf.RandomVerticalFlip())
+            elif "VFlip-1" in augmentation:
+                trans.append(ttf.RandomVerticalFlip(p=1))
 
         trans.append(ttf.ToTensor())
 
