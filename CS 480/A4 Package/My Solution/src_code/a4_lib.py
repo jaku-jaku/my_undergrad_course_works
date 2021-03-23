@@ -125,12 +125,17 @@ class ProgressReport:
 
 
 class AddGaussianNoise(object):
-    def __init__(self, mean=0., std=1.):
+    def __init__(self, mean=0., std=1., p=1):
         self.std = std
         self.mean = mean
-        
+        self.p = p
+
     def __call__(self, tensor):
-        return tensor + t.randn(tensor.size()) * self.std + self.mean
+        p = np.random.random()
+        if (p <= self.p):
+            return tensor + t.randn(tensor.size()) * self.std + self.mean 
+        else:
+            return tensor
     
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
@@ -174,12 +179,14 @@ class A4_EX1_CNN_HELPER:
         # Gaussian Noise
         if augmentation is not None:
             # Gaussian Noise
-            if "GAUSS-0.01" in augmentation:
+            if "GAUSS-0p01" in augmentation:
                 trans.append(AddGaussianNoise(std=0.01))
-            elif "GAUSS-0.1" in augmentation:
+            elif "GAUSS-0p1" in augmentation:
                 trans.append(AddGaussianNoise(std=0.1))
             elif "GAUSS-1" in augmentation:
                 trans.append(AddGaussianNoise(std=1))
+            elif "GAUSS-0p5-0p5" in augmentation:
+                trans.append(AddGaussianNoise(std=0.5, p=0.5))
 
         transform = ttf.Compose(trans)
         
@@ -279,7 +286,7 @@ class A4_EX1_CNN_HELPER:
             train_n += y.shape[0]
             batch_count += 1
 
-        test_loss = test_loss_sum / batch_count
+        train_loss = train_loss_sum / batch_count
         train_acc = train_acc_sum / train_n
         train_ellapse = time.time() - train_start
 
