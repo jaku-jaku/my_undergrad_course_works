@@ -1,0 +1,341 @@
+\documentclass[10pt,letter,notitlepage]{article}
+%Mise en page
+\usepackage[left=2cm, right=2cm, lines=45, top=0.8in, bottom=0.7in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{fancybox}
+\usepackage{pdfpages} 
+\renewcommand{\headrulewidth}{1.5pt}
+\renewcommand{\footrulewidth}{1.5pt}
+\pagestyle{fancy}
+\newcommand\Loadedframemethod{TikZ}
+\usepackage[framemethod=\Loadedframemethod]{mdframed}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+%\usepackage{url}
+\usepackage{dsfont}
+\usepackage{amssymb,amsmath}
+\usepackage{xspace}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+
+\lhead{
+\textbf{University of Waterloo}
+}
+\rhead{\textbf{2021 Winter}
+}
+\chead{\textbf{
+CS480/680
+ }}
+
+
+\newcommand{\Tsf}{\mathsf{T}}
+\newcommand{\Fsf}{\mathsf{F}}
+\newcommand{\pp}{\mathsf{p}}
+\newcommand{\qq}{\mathsf{q}}
+\newcommand{\Qsf}{\mathsf{Q}}
+\newcommand{\lb}{\mathtt{lb}}
+\newcommand{\ub}{\mathtt{ub}}
+\newcommand{\med}{\mathtt{med}}
+\newcommand{\mi}{\mathtt{maxiter}}
+\newcommand{\tol}{\mathtt{tol}}
+
+
+\newcommand{\RR}{\mathds{R}}
+\newcommand{\Id}{\mathbb{I}}
+\newcommand{\NN}{\mathds{N}}
+\newcommand{\sign}{\mathop{\mathrm{sign}}}
+\newcommand{\diag}{\mathop{\mathrm{diag}}}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\zero}{\mathbf{0}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\alphav}{\boldsymbol{\alpha}}
+\newcommand{\betav}{\boldsymbol{\beta}}
+\newcommand{\av}{\mathbf{a}}
+\newcommand{\bv}{\mathbf{b}}
+\newcommand{\sv}{\mathbf{s}}
+\newcommand{\wv}{\mathbf{w}}
+\newcommand{\xv}{\mathbf{x}}
+\newcommand{\yv}{\mathbf{y}}
+\newcommand{\zv}{\mathbf{z}}
+\newcommand{\uv}{\mathbf{u}}
+\newcommand{\inner}[2]{\langle #1, #2 \rangle}
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\blue}[1]{{\color{blue}#1}}
+\newcommand{\magenta}[1]{{\color{magenta}#1}}
+
+
+\newcommand{\ea}{{et al.}\xspace}
+\newcommand{\eg}{{e.g.}\xspace}
+\newcommand{\ie}{{i.e.}\xspace}
+\newcommand{\iid}{{i.i.d.}\xspace}
+\newcommand{\cf}{{cf.}\xspace}
+\newcommand{\wrt}{{w.r.t.}\xspace}
+\newcommand{\aka}{{a.k.a.}\xspace}
+\newcommand{\etc}{{etc.}\xspace}
+\newcommand{\sgm}{\mathsf{sgm}}
+\newcommand{\Dc}{\mathcal{D}}
+\newcommand{\ans}[1]{{\color{orange}\textsf{Ans}: #1}}
+
+
+\lfoot{}
+\cfoot{}
+
+%================================
+%================================
+
+\setlength{\parskip}{1cm}
+\setlength{\parindent}{1cm}
+\tikzstyle{titregris} =
+[draw=gray,fill=white, shading = exersicetitle, %
+text=gray, rectangle, rounded corners, right,minimum height=.3cm]
+\pgfdeclarehorizontalshading{exersicebackground}{100bp}
+{color(0bp)=(green!40); color(100bp)=(black!5)}
+\pgfdeclarehorizontalshading{exersicetitle}{100bp}
+{color(0bp)=(red!40);color(100bp)=(black!5)}
+\newcounter{exercise}
+\renewcommand*\theexercise{exercice \textbf{Exercice}~n\arabic{exercise}}
+\makeatletter
+\def\mdf@@exercisepoints{}%new mdframed key:
+\define@key{mdf}{exercisepoints}{%
+\def\mdf@@exercisepoints{#1}
+}
+
+\mdfdefinestyle{exercisestyle}{%
+outerlinewidth=1em,outerlinecolor=white,%
+leftmargin=-1em,rightmargin=-1em,%
+middlelinewidth=0.5pt,roundcorner=3pt,linecolor=black,
+apptotikzsetting={\tikzset{mdfbackground/.append style ={%
+shading = exersicebackground}}},
+innertopmargin=0.1\baselineskip,
+skipabove={\dimexpr0.1\baselineskip+0\topskip\relax},
+skipbelow={-0.1em},
+needspace=0.5\baselineskip,
+frametitlefont=\sffamily\bfseries,
+settings={\global\stepcounter{exercise}},
+singleextra={%
+\node[titregris,xshift=0.5cm] at (P-|O) %
+{~\mdf@frametitlefont{\theexercise}~};
+\ifdefempty{\mdf@@exercisepoints}%
+{}%
+{\node[titregris,left,xshift=-1cm] at (P)%
+{~\mdf@frametitlefont{\mdf@@exercisepoints points}~};}%
+},
+firstextra={%
+\node[titregris,xshift=1cm] at (P-|O) %
+{~\mdf@frametitlefont{\theexercise}~};
+\ifdefempty{\mdf@@exercisepoints}%
+{}%
+{\node[titregris,left,xshift=-1cm] at (P)%
+{~\mdf@frametitlefont{\mdf@@exercisepoints points}~};}%
+},
+}
+\makeatother
+
+
+%%%%%%%%%
+
+%%%%%%%%%%%%%%%
+\mdfdefinestyle{theoremstyle}{%
+outerlinewidth=0.01em,linecolor=black,middlelinewidth=0.5pt,%
+frametitlerule=true,roundcorner=2pt,%
+apptotikzsetting={\tikzset{mfframetitlebackground/.append style={%
+shade,left color=white, right color=blue!20}}},
+frametitlerulecolor=black,innertopmargin=1\baselineskip,%green!60,
+innerbottommargin=0.5\baselineskip,
+frametitlerulewidth=0.1pt,
+innertopmargin=0.7\topskip,skipabove={\dimexpr0.2\baselineskip+0.1\topskip\relax},
+frametitleaboveskip=1pt,
+frametitlebelowskip=1pt
+}
+\setlength{\parskip}{0mm}
+\setlength{\parindent}{10mm}
+\mdtheorem[style=theoremstyle]{exercise}{\textbf{Exercise}}
+
+%================Liste definition--numList-and alphList=============
+\newcounter{alphListCounter}
+\newenvironment
+{alphList}
+{\begin{list}
+{\alph{alphListCounter})}
+{\usecounter{alphListCounter}
+\setlength{\rightmargin}{0cm}
+\setlength{\leftmargin}{0.5cm}
+\setlength{\itemsep}{0.2cm}
+\setlength{\partopsep}{0cm}
+\setlength{\parsep}{0cm}}
+}
+{\end{list}}
+\newcounter{numListCounter}
+\newenvironment
+{numList}
+{\begin{list}
+{\arabic{numListCounter})}
+{\usecounter{numListCounter}
+\setlength{\rightmargin}{0cm}
+\setlength{\leftmargin}{0.5cm}
+\setlength{\itemsep}{0cm}
+\setlength{\partopsep}{0cm}
+\setlength{\parsep}{0cm}}
+}
+{\end{list}}
+
+\usepackage[breaklinks=true,letterpaper=true,linkcolor=magenta,urlcolor=magenta,citecolor=black]{hyperref}
+
+\usepackage{cleveref}
+\usepackage{xpatch}
+\xpretocmd{\algorithm}{\hsize=\linewidth}{}{}
+
+%===========================================================
+\begin{document}
+
+\begin{center}
+\large{\textbf{CS480/680: Introduction to Machine Learning} \\ Homework 5\\ \red{Due: 11:59 pm, April 9, 2021}, \red{submit on LEARN and CrowdMark (see Piazza)}.} \\
+
+Include your name and student number!
+
+\end{center}
+
+\begin{center}
+Submit your writeup in pdf and all source code in a zip file (with proper documentation). Write a script for each programming exercise so that the TAs can easily run and verify your results. Make sure your code runs!
+
+[Text in square brackets are hints that can be ignored.]
+\end{center}
+
+\begin{exercise}[Quantile and push-forward (10 pts)]
+	In this exercise we compute and simulate the push-forward map $\Tsf$ that transforms a source density $\qq$ into a target density $\pp$. Recall that the quantile function of a (univariate) random variable $X$ is defined as the inverse of its cumulative distribution function (cdf) $\Fsf$:
+	\begin{align}
+	\Fsf(x) = \Pr(X \leq x), \qquad
+	\Qsf(u) = \Fsf^{-1}(u),~~ u \in \red{(}0,1 \red{)}.
+	\end{align}
+	We assume $\Fsf$ is continuous and strictly increasing so that $\Qsf^{-1} = \Fsf$. A nice property of the quantile function, relevant to sampling, is that if $U \sim \mathrm{Uniform}(0,1)$, then $\Qsf(U) \sim \Fsf$.
+
+	\begin{enumerate}
+
+		\item (2 pts) Consider the Gaussian mixture model $\pp(x) = \red{\tfrac{\pi}{\sigma_1}} \varphi\left( \frac{x-\mu_1}{\sigma_1}\right) + \red{\tfrac{1-\pi}{\sigma_2}} \varphi\left( \frac{x-\mu_2}{\sigma_2}\right)$, where $\varphi$ is the \emph{density} of the standard normal distribution (mean 0 and variance 1). Implement the following to create a dataset of $n=1000$ samples from the GMM $\pp$:
+		\begin{itemize}
+			\item Sample $U_i\sim \mathrm{Uniform}(0,1)$.
+			\item If $U_i < \pi$, sample $X_i \sim \mathcal{N}(\mu_1, \sigma_1)$; otherwise sample $X_i \sim \mathcal{N}(\mu_2, \sigma_2)$.
+		\end{itemize}
+		Plot the histogram of the generated $X_i$ (with $b=50$ bins) and submit your script as \\ \verb|X = GMMsample(gmm, n=1000, b=50), gmm.pi=0.5, gmm.mu=[1,-1], gmm.sigma=[0.5,0.5]|
+
+		[See \href{https://pythonspot.com/matplotlib-histogram/}{here} or \href{https://realpython.com/python-histograms/}{here} for how to plot a histogram in \verb|matplotlib| or \verb|pandas| (or \verb|numpy| if you insist).]
+
+		\item (2 pts) Compute $U_i = \Phi^{-1}\big(\Fsf(X_i))$, where $\Fsf$ is the \emph{cdf} of the GMM in Ex 1.1 and $\Phi$ is the \emph{cdf} of standard normal. Plot the histogram of the generated $U_i$ (with $b$ bins). From your inspection, what distribution should $U_i$ follow (approximately)? Submit your script as \verb|GMMinv(X, gmm, b=50)|.
+
+		[This \href{https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.erf.html}{page} may be helpful.]
+
+		\item (2 pts) Let $Z \sim \mathcal{N}(0,1)$. We now compute the push-forward map $\Tsf$ so that $\Tsf(Z) = X \sim \pp$ (the GMM in Ex 1.1). We use the formula:
+		\begin{align}
+		\Tsf(z) = \Qsf( \Phi(z) ),
+		\end{align}
+		where $\Phi$ is the \emph{cdf} of the standard normal distribution and $\Qsf = \Fsf^{-1}$ is the quantile function of $X$, namely the GMM $\pp$ in Ex 1.1. Implement the following binary search \Cref{alg:bs} to numerically compute $\Tsf$. Plot the function $\Tsf$ with input $z \in [-5,5]$ (increment 0.1). Submit your main script as \verb|BinarySearch(F, u, lb=-100, ub=100, maxiter=100, tol=1e-5)|, where \verb|F| is a function. You may need to write another script to compute and plot $\Tsf$ (based on \verb|BinarySearch|).
+
+		\item (2 pts) Sample (independently) $Z_i \sim \mathcal{N}(0,1), i = 1, \ldots, n=1000$ and let $\tilde X_i = \Tsf(Z_i)$, computed by your \verb|BinarySearch|. Plot the histogram of the generated $\tilde X_i$ (with $b$ bins) and submit your script as \verb|PushForward(Z, gmm)|. Is the histogram similar to the one in Ex 1.1?
+
+		\item (2 pts) Now let us compute $\tilde U_i = \Phi^{-1}\big(\Fsf(\tilde X_i))$ as in Ex 1.2, with $\tilde X_i$'s generated in Ex 1.4. Plot the histogram of the resulting $\tilde U_i$ (with $b$ bins). From your inspection what distribution should $\tilde U_i$ follow (approximately)? [No need to submit any script, as you can recycle \verb|GMMinv|.]
+
+		\item (optional, 0 pt) Parameterize $\Tsf$ as a two-layer neural network (with say 50 hidden neurons and \texttt{Relu} activation) and use maximum likelihood to estimate $\Tsf$, based on the samples $X_i$ from Ex 1.1. Plot your $\Tsf$ with input $z \in [-5,5]$ (increment 0.1) and compare to Ex 1.3.
+	\end{enumerate}
+
+\end{exercise}
+
+
+\begin{algorithm}[H]
+	\DontPrintSemicolon
+	\KwIn{$u\in(0,1), \lb \leq \ub, \mi, \tol$}
+
+	\KwOut{$x$ such that $|\Fsf(x) - u| \leq \tol$}
+
+	\While{$\Fsf(\lb) > u$}{
+		$\ub \gets \lb$
+
+		$\lb \gets \lb /2$
+	}
+
+	\While{$\Fsf(\ub) < u$}{
+		$\lb \gets \ub$
+
+		$\ub \gets \ub * 2$
+	}
+
+	\For{$i=1, \ldots, \mi$ }{
+
+		$x \gets \tfrac{\lb+\ub}{2}$
+
+		$t \gets \Fsf(x)$
+
+
+		\If{ $t > u$}{$\ub \gets x$}
+		\Else{$\lb \gets x$}
+
+		\If{$ |t - u| \leq \tol $}{\textbf{break}}
+
+	}
+
+	\caption{Binary search for solving a monotonic nonlinear equation $\Fsf(x) = u$.}
+	\label{alg:bs}
+\end{algorithm}
+
+\begin{exercise}[Robustness and Lasso (5 pts)]
+	Consider the linear regression problem:
+	\begin{align}
+	\min_{\wv \in \RR^d} ~ \|X \wv - \yv\|_2,
+	\end{align}
+	where $X \in \RR^{n \times d}$, $\yv \in \RR^n$, $n$ is the number of training examples and $d$ is the number of features. For simplicity we omitted the bias. Now suppose we perturb each \emph{feature} independently, and we are interested in solving the robust linear regression problem:
+	\begin{align}
+    \min_{\wv\in\RR^d} ~ \max_{\forall j, \|\zv_j\|_2 \leq \lambda} ~ \|(X + Z)\wv - \yv\|_2, \label{eq:1}
+	\end{align}
+	where the perturbation matrix $Z = [\zv_1, \ldots, \zv_d] \in \RR^{n \times d}$. Prove that robust linear regression is exactly equivalent to (square-root) Lasso (note the absence of the square on the $\ell_2$ norm):
+	\begin{align}
+    \min_{\wv \in \RR^d} ~ \| X \wv - \yv\|_2 + \lambda\|\wv\|_1, \label{eq:2}
+	\end{align}
+	where recall that $\|\wv\|_1 = \sum_j |w_j|$.
+	
+  [Hint: Start from (\ref{eq:1}), apply the Cauchy-Schwarz inequality $\|\wv\|_2 = \max\limits_{\|\uv\|_2 \leq 1} \wv^\top\uv$ a few times and a few other tricks, in order to convert it into (\ref{eq:2}).]
+	
+\end{exercise}	
+
+\begin{exercise}[Adversarial examples (5 pts)]
+	In this exercise we experiment with adversarial examples.
+
+	\begin{enumerate}
+
+		\item (1 pts) Train a neural network on MNIST. (The dataset can be downloaded with torchvision API for example.) You can build your own model or use an existing model architecture. Report the architecture and the test accuracy (should be $>90\%$).
+
+		[You are suggested to save this trained model for later purpose.]
+
+		[You can use any model architecture (e.g. CNN, MLP), but the test accuracy should be at least $90\%$.]
+
+
+  \item (2 pts) Use the Fast Gradient Sign Method (FGSM) to generate adversarial images for all the test images ($1$ adversarial example per image) with $L_{\infty}$ perturbation budget $\epsilon = 0.2$ against your previous model, and report the model accuracy on this adversarially attacked set of test images. [The resulting value should be low.]
+
+		Display some of your adversarial images (e.g. randomly sample $5$) with their labels, and what do you observe?
+
+    Repeat the above with $\varepsilon = 0.1$ and $\varepsilon = 0.5$. What do you observe?
+
+
+		[Let $x$ denote the original image, and $\tilde{x}$ the perturbed image. $L_{\infty}$ perturbation with budget $\epsilon$ means $\|x-\tilde{x}\|_{\infty} \leq \epsilon$]
+
+
+		\item (2 pts) Do adversarial training: Initialize a new model with same architecture as in exercise 3.1. During the training process, instead of using the original training data, generate adversarial examples (with an $L_{\infty}$ perturbation budget $\epsilon$ you prefer) with respect to the parameters at the current iteration and train on them instead.
+      %use adversarial images generated from the training data (these adversarial images are against your model in (1), and with an $L_{\infty}$ perturbation budget $\epsilon$ you prefer, e.g. $0.1$) to train your model. 
+      You can use either FGSM or a projected gradient descent (PGD) based strategy to generate these adversarial images.
+
+		After you adversarially trained the new model, repeat the instructions in exercise 3.2 with budgets $\epsilon=0.1$, $0.2$, and $0.5$ against your new model. 
+      Compare the results with those from exercise 3.2, what do you observe by performing adversarial training?
+
+		[For adversarial training, feel free to generate and use more than $1$ adversarial example per training image.]
+    
+  \item (Bonus: Up to 3 points) Come up with a more robust model: that is, one which achieves a non-trivially higher accuracy when evaluated against the attacks from exercise 3.2. Do you believe that this is *truly* more robust? That is, can you come up with a better way of attacking your new method that causes the accuracy to drop lower again?
+
+    [The truth is that you are unlikely to come up with a truly and strongly robust model: in the research community, attacks are ``winning'' against the defenses. This is because of an asymmetry: for an attack to be good, it only needs to defeat one defense. But for a defense to be good, it must defeat all attacks.]
+	\end{enumerate}
+
+\end{exercise}
+
+
+\end{document}
+              

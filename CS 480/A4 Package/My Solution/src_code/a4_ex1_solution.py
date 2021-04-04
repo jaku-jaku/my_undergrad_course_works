@@ -77,7 +77,7 @@ def solve_a4_ex1(
         resize       = IMG_SIZE, # NOTE: make sure you understand why
         n_workers    = 1,
         augmentation = TRAINING_AUG, # Options: ["HFlip", "VFlip", "GAUSS-0.01"],
-        shuffle      = False,
+        shuffle      = True,
         train_set    = True,
     )
     test_dataset  = a4_lib.A4_EX1_CNN_HELPER.load_mnist_data(
@@ -85,7 +85,7 @@ def solve_a4_ex1(
         resize       = IMG_SIZE, # NOTE: make sure you understand why
         n_workers    = 1,
         augmentation = None, # Options: ["HFlip", "VFlip", "GAUSS-0.01"],
-        shuffle      = True,
+        shuffle      = False,
         train_set    = False,
     )
 
@@ -104,7 +104,7 @@ def solve_a4_ex1(
     )
 
     # output state:
-    t.save(MODEL_DICT["VGG11"].state_dict(), "%s/last.pth"%(OUT_DIR_E1))
+    t.save(MODEL_DICT["VGG11"], "{}/last_{}.pt".format(OUT_DIR_E1, "_".join(TRAINING_AUG)))
 
     # EVALUATE: --- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     # P4.2
@@ -114,22 +114,22 @@ def solve_a4_ex1(
         verbose_level   = VERBOSE_LEVEL
     )
     # P4.3 - test augmented dataset:
-    for augmentation in ["HFlip", "VFlip", "GAUSS-0.01", "GAUSS-0.1", "GAUSS-1"]:
+    for augmentation in ["HFlip-1", "VFlip-1", "GAUSS-0.01", "GAUSS-0.1", "GAUSS-1"]:
         if VERBOSE_LEVEL >= a4_lib.VerboseLevel.LOW:
             print("==== P4.3 : Test: {}".format(augmentation))
         
         test_dataset_aug  = a4_lib.A4_EX1_CNN_HELPER.load_mnist_data(
             batch_size   = BATCH_SIZE, 
-            resize       = IMG_SIZE, # NOTE: make sure you understand why
+            resize       = IMG_SIZE,
             n_workers    = 1,
-            augmentation = augmentation,
-            shuffle      = True,
+            augmentation = [augmentation],
+            shuffle      = False,
             train_set    = False,
         )
 
         test_loss, test_acc, test_n, test_ellapse = a4_lib.A4_EX1_CNN_HELPER.test(
             device        = device,
-            test_dataset  = test_dataset,
+            test_dataset  = test_dataset_aug,
             loss_func     = CrossEntropyLoss(),
             net           = MODEL_DICT["VGG11"], 
             verbose_level = VERBOSE_LEVEL,
@@ -141,3 +141,5 @@ def solve_a4_ex1(
             print("> [{}] test_loss: {}, test_acc: {}, test_n: {}, test_ellapse: {}".format(
                 augmentation, test_loss, test_acc, test_n, test_ellapse
             ))
+    
+    return MODEL_DICT["VGG11"]

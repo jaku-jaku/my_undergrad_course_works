@@ -125,12 +125,17 @@ class ProgressReport:
 
 
 class AddGaussianNoise(object):
-    def __init__(self, mean=0., std=1.):
+    def __init__(self, mean=0., std=1., p=1):
         self.std = std
         self.mean = mean
-        
+        self.p = p
+
     def __call__(self, tensor):
-        return tensor + t.randn(tensor.size()) * self.std + self.mean
+        p = np.random.random()
+        if (p <= self.p):
+            return tensor + t.randn(tensor.size()) * self.std + self.mean 
+        else:
+            return tensor
     
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
@@ -147,7 +152,7 @@ class A4_EX1_CNN_HELPER:
         resize       : Optional[tuple] = None,
         n_workers    : int  = 1,
         root         : str  = "./data/",
-        augmentation : List[str] = ["HFlip", "VFlip", "GAUSS-0.01"],
+        augmentation : List[str] = ["HFlip-1", "VFlip-1", "GAUSS-0.01"],
         shuffle      : bool = True,
         train_set    : bool = True,
     ):
@@ -162,20 +167,26 @@ class A4_EX1_CNN_HELPER:
             print("> Augmentation: {}".format(augmentation))
             if "HFlip" in augmentation:
                 trans.append(ttf.RandomHorizontalFlip())
+            elif "HFlip-1" in augmentation:
+                trans.append(ttf.RandomHorizontalFlip(p=1))
             if "VFlip" in augmentation:
                 trans.append(ttf.RandomVerticalFlip())
+            elif "VFlip-1" in augmentation:
+                trans.append(ttf.RandomVerticalFlip(p=1))
 
         trans.append(ttf.ToTensor())
 
         # Gaussian Noise
         if augmentation is not None:
             # Gaussian Noise
-            if "GAUSS-0.01" in augmentation:
+            if "GAUSS-0p01" in augmentation:
                 trans.append(AddGaussianNoise(std=0.01))
-            elif "GAUSS-0.1" in augmentation:
+            elif "GAUSS-0p1" in augmentation:
                 trans.append(AddGaussianNoise(std=0.1))
             elif "GAUSS-1" in augmentation:
                 trans.append(AddGaussianNoise(std=1))
+            elif "GAUSS-0p5-0p5" in augmentation:
+                trans.append(AddGaussianNoise(std=0.5, p=0.5))
 
         transform = ttf.Compose(trans)
         
@@ -200,6 +211,7 @@ class A4_EX1_CNN_HELPER:
 
         test_loss_sum, test_acc_sum, test_n, test_start = 0.0, 0.0, 0, time.time()
 
+        batch_count = 0
         for i, (X, y) in enumerate(test_dataset):
             if max_data_samples is not None:
                 if i >= max_data_samples:
@@ -222,9 +234,10 @@ class A4_EX1_CNN_HELPER:
             test_loss_sum += loss.item()
             test_acc_sum += (y_prediction.argmax(dim=1) == y).sum().item()
             test_n += y.shape[0]
+            batch_count += 1
 
-        test_loss = test_loss_sum/test_n
-        test_acc = test_acc_sum/test_n
+        test_loss = test_loss_sum / batch_count
+        test_acc = test_acc_sum / test_n
         test_ellapse = time.time() - test_start
 
         return test_loss, test_acc, test_n, test_ellapse
@@ -244,6 +257,7 @@ class A4_EX1_CNN_HELPER:
         if verbose_level >= VerboseLevel.LOW:
             print("  >> Learning (wip)")
         train_loss_sum, train_acc_sum, train_n, train_start = 0.0, 0.0, 0, time.time()
+        batch_count = 0
         for i, (X, y) in enumerate(train_dataset):
             if max_data_samples is not None:
                 if i >= max_data_samples:
@@ -270,9 +284,10 @@ class A4_EX1_CNN_HELPER:
             train_loss_sum += loss.item()
             train_acc_sum += (y_prediction.argmax(dim=1) == y).sum().item()
             train_n += y.shape[0]
-        
-        train_loss = train_loss_sum/train_n
-        train_acc = train_acc_sum/train_n
+            batch_count += 1
+
+        train_loss = train_loss_sum / batch_count
+        train_acc = train_acc_sum / train_n
         train_ellapse = time.time() - train_start
 
         return train_loss, train_acc, train_n, train_ellapse
@@ -319,7 +334,7 @@ class A4_EX1_CNN_HELPER:
 
             # Store
             report.append(
-                epoch         = epoch,
+                epoch         = epoch + 1,
                 train_loss    = train_loss,
                 train_acc     = train_acc,
                 train_time    = train_ellapse,
