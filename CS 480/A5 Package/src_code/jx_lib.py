@@ -196,17 +196,24 @@ def pie_plot(
 
 def imgs_plot(
         dict_of_imgs,
-        figsize=(6,6)
+        figsize = (6,6),
+        cmap    = None,
+        OUT_DIR = "",
+        tag     = "",
+        show    = False
     ):
     fig = plt.figure(figsize=figsize)
     sqr = np.ceil(np.sqrt(len(dict_of_imgs)))
 
     for i,label in enumerate(dict_of_imgs):
         ax = plt.subplot(sqr,sqr,i+1)
-        ax.imshow(dict_of_imgs[label])
+        ax.imshow(dict_of_imgs[label], cmap=cmap)
         plt.xlabel(label)
 
     plt.tight_layout()
+    fig.savefig("{}/plot_{}.png".format(OUT_DIR, tag), bbox_inches = 'tight')
+    if not show:
+        plt.close(fig)
     return fig
 
 
