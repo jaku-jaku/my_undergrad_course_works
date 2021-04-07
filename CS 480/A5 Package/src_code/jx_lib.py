@@ -235,6 +235,26 @@ def progress_plot(
 
     return fig
 
+def output_plot(
+    data_dict,
+    Ylabel  = "",
+    Xlabel  = "",
+    figsize = (12,6),
+    OUT_DIR = "",
+    tag     = ""
+):
+    fig = plt.figure(figsize=figsize)
+    for name_, data_ in data_dict.items():
+        plt.plot(data_["x"], data_["y"], label=name_) 
+    plt.ylabel(Ylabel)
+    plt.xlabel(Xlabel)
+    plt.legend()
+    plt.title("Plot [{}]".format(tag))
+    fig.savefig("{}/plot_{}.png".format(OUT_DIR, tag), bbox_inches = 'tight')
+    plt.close(fig)
+    return fig
+
+
 def output_prediction_result_plot(
     labels,
     dict_input_x,
@@ -271,7 +291,7 @@ def output_hist(
 ):
     fig = plt.figure(figsize=figsize)
     for name_, data_ in data_dict.items():
-        plt.hist(data_, density=True, bins=bin_size, label=name_) 
+        plt.hist(data_, density=True, bins=bin_size, label=name_, alpha=1/len(data_dict)) 
     plt.ylabel('Probability')
     plt.xlabel('Data')
     plt.legend()
