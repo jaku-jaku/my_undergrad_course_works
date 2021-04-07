@@ -25,3 +25,15 @@ P = [p1 p5 p1; p2 p2 p4; 0 0 p3]
 W = [1 0 1; -1 1 1; 0 0 -1]
 
 P*W
+
+
+%%
+K = 2
+Atilda = [3 0; -K 0]
+Btilda = [2; 0]
+
+Q = 1;
+R = 1;
+
+Kk = lqr(Atilda, Btilda, Q, R)
+
