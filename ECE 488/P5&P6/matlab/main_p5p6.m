@@ -9,7 +9,7 @@ helper.createFolder("output/p6", false);
 disp("=== Output Folder Inited for P5 and P6 ===")
 
 %% User Param:
-ENV_P5 = true;
+ENV_P5 = false;
 ENV_P6 = true;
 EN_SIM  = true;
 
@@ -120,7 +120,7 @@ if ENV_P5
     helper.sisoPlot(zpk(L_aug(2,2)), [600 500], "p5", "Ideal(2,2)")
     
     % report actual performance:
-    perform_table_ideal = helper.performance_table_mimo2x2(TF_actual);
+    perform_table_actual = helper.performance_table_mimo2x2(TF_actual);
     
     %% [Optional] f) simulation:
     r_theta = 0.5 * r_step'; % scale down to 0.5 [rad] peak
@@ -131,7 +131,7 @@ if ENV_P5
     r_w_0 = r_w * 0;
     helper.simulation_and_plot_mimo(TF_actual, [r_w_0 r_theta], t', "actual-fixed_w", EN_SIM, "p5", true);
     
-    % fix theta:
+    %% fix theta:
     r_theta_0 = r_theta * 0;
-    helper.simulation_and_plot_mimo(TF_actual, [r_w r_theta_0], t', "actual-fixed_theta", EN_SIM, "p5", true);
+    helper.simulation_and_plot_mimo(TF_actual, [r_w r_theta_0], t', "actual-fixed_{theta}", EN_SIM, "p5", true);
 end
