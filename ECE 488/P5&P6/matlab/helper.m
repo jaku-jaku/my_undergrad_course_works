@@ -116,6 +116,37 @@ classdef helper
                  helper.saveFigure([300, 300], FOLDER, sprintf("sim_%s", tag))
             end
         end
+        function simulation_and_plot_mimo(TF, r, t, tag, ifsim, FOLDER, verbose)
+            fprintf("=== SIMULATION [%s:%s] ===\n", FOLDER, tag)
+            y = lsim(TF, r, t);
+
+            % plot ref & resp:
+            figure()
+            subplot(2, 1, 1)
+            hold on;
+            plot(t, r(:,1), '--', 'color', 'blue')
+            plot(t, y(:,1))
+            grid on;
+            ylabel("w [m]")
+            legend(["r_{w}", "w"])
+
+            subplot(2, 1, 2)
+            hold on;
+            plot(t, r(:,2), '--', 'color', 'blue')
+            plot(t, y(:,2))
+            grid on;
+            ylabel("\theta [rad/s]")
+            legend(["r_{\theta}", "\theta"])
+
+            helper.saveFigure([400, 300], FOLDER, sprintf("square_response_%s", tag))
+
+            % Simulate
+            if ifsim
+                 figure()
+                 single_pend_fancy_sim(t, y, r, 1, 50, tag);
+                 helper.saveFigure([300, 300], FOLDER, sprintf("mimo_sim_%s", tag))
+            end
+        end
         %% Custom Bode
         function bode_plot_custom(TF, tag, FOLDER, verbose)
             fprintf("=== BODE PLOT [%s:%s] ===\n", FOLDER, tag);
@@ -158,6 +189,25 @@ classdef helper
            syms s
            t_sym = poly2sym(cell2mat(num),s)/poly2sym(cell2mat(den),s);
            latex(vpa(t_sym, 5))
+        end
+        function [Table] = performance_table_mimo2x2(TF_actual)
+            [y,t]=step(TF_actual);
+            status = stepinfo(TF_actual);
+            A = status(1,1);
+            B = status(1,2);
+            C = status(2,1);
+            D = status(2,2);
+            CONTENT = [ ...
+                [A.RiseTime, A.SettlingTime, A.PeakTime, A.Peak, y(length(y)-1,1,1), A.Overshoot, A.Undershoot]; ...
+                [B.RiseTime, B.SettlingTime, B.PeakTime, B.Peak, y(length(y)-1,1,2), B.Overshoot, B.Undershoot]; ...
+                [C.RiseTime, C.SettlingTime, C.PeakTime, C.Peak, y(length(y)-1,2,1), C.Overshoot, C.Undershoot]; ...
+                [D.RiseTime, D.SettlingTime, D.PeakTime, D.Peak, y(length(y)-1,2,2), D.Overshoot, D.Undershoot]; ...
+            ];
+            Table = array2table(CONTENT, ...
+                'VariableNames',{'t_{rise}','t_{settling}','t_{peak}','y_{peak}','y_{ss}','OS\%','US\%'}, ...
+                'RowName',{'(1,1)','(1,2)', '(2,1)', '(2,2)'}); 
+            disp("Performance Summary:")
+            disp(Table)
         end
     end
 end
