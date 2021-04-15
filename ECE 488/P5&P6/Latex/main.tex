@@ -313,67 +313,228 @@ As we may see from the transient performance tabulated in \Cref{table:p5:perf:ac
 \clearpage
 % --- ANS (f) --- %
 \subsection{(f) [Optional] Simulation \label{ans:P5-f}}
+\paragraph{Step Input of $r_{w}=1\unit{m}$}
 Firstly, let's fixed the rod angle, and try to move the base without changing the rod angle.
-
 \begin{figure}[H]
 	\centering
-	\includegraphics[height=250px]{../matlab/output/p5/square_response_actual-fixed_theta}
-	\caption{System response for a step input of base position $r_{w}=1\unit{m}$ with fixed rod angle $r_{theta}=0$}
-	\label{fig:p5:P3_aug:sim:fixe-theta}
-\end{figure}
-\begin{figure}[H]
-	\centering
-	\includegraphics[height=200px]{../matlab/output/p5/mimo_sim_actual-fixed_theta}
-	\caption{Simulation of the actual plant with the controller designed (fixed rod angle $r_{theta}=0\unit{rad}$)}
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p5/mimo_sim_actual-fixed-theta}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p5/square_response_actual-fixed-theta}}
+	\caption{Simulation and Step Response for step input of $r_{w}=1\unit{m}$}
 	\label{fig:p5:P3_aug:sim:fixe-theta}
 \end{figure}
 
 As we have discussed, we observed the undershoot and overshoot in the actual plant due to the ignorance of cross-channelling effects when designing the controller. This causes a bad transient performance, but the steady-state of the system looks pretty decent. The coupling effect from the base position to the rod angular position is quite significant, and observable in the simulation plot in \Cref{fig:p5:P3_aug:sim:fixe-theta}.
 
-\clearpage
+\paragraph{Step Input of $r_{\theta}=0.5\unit{rad}$}
 Now, let's fixed the base position, and try to rotate the rod angle without changing the base position.
 \begin{figure}[H]
 	\centering
-	\includegraphics[height=250px]{../matlab/output/p5/square_response_actual-fixed_w}
-	\caption{System response for a step input of rod angle $r_{\theta}=0.5\unit{rad}$ with fixed base position $r_{w}=0\unit{m}$}
-	\label{fig:p5:P3_aug:sim:fixe-w}
-\end{figure}
-\begin{figure}[H]
-	\centering
-	\includegraphics[height=200px]{../matlab/output/p5/mimo_sim_actual-fixed_w}
-	\caption{Simulation of the actual plant with the controller designed (fixed base position $r_{w}=0\unit{m}$)}
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p5/mimo_sim_actual-fixed-w}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p5/square_response_actual-fixed-w}}
+	\caption{Simulation and Step Response for step input of $r_{\theta}=0.5\unit{rad}$}
 	\label{fig:p5:P3_aug:sim:fixe-w}
 \end{figure}
 Similarly, we observed the undershoot and overshoot in the actual plant due to the ignorance of cross-channelling effects when designing the controller. The system indeed reaches a perfect steady-state, despite bad transient performance. To note, this transient effect is almost negligible, hence, we may conclude that the rod angle position has little coupling effect of the base position in this setup (as suggest by \Cref{fig:p5:P3_aug:sim:fixe-w}).
 
-\clearpage
+\paragraph{Combined Step Input}
 Finally, let's combine both step input.
 \begin{figure}[H]
 	\centering
-	\includegraphics[height=250px]{../matlab/output/p5/square_response_actual-both}
-	\caption{System response for a step input of rod angle $r_{\theta}=0.5\unit{rad}$ with a step input of base position $r_{w}=1\unit{m}$}
-	\label{fig:p5:P3_aug:sim:both}
-\end{figure}
-\begin{figure}[H]
-	\centering
-	\includegraphics[height=200px]{../matlab/output/p5/mimo_sim_actual-both}
-	\caption{Simulation of the actual plant with the controller designed (combined step input)}
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p5/mimo_sim_actual-both}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p5/square_response_actual-both}}
+	\caption{Simulation and Step Response for step input of $r_{\theta}=0.5\unit{rad}$ and $r_{w}=1\unit{m}$}
 	\label{fig:p5:P3_aug:sim:both}
 \end{figure}
 
 The result looks pretty good, except the undershoot in the rod angle from the coupling effects from the base motion. The final steady-state for both final position and final rod angle looks decent.
 
 %%%%%%%%%%%%%%%%
-%%%%% Ex 6 %%%%%
-%%%%%%%%%%%%%%%%
+%%%%% Ex 6 %%%%% %%%%%%%%%%%%%%%%
 \newpage
 \section{Problem P6: Use of state-space methods to control the MIMO aiming system}
 %\vspace{5pt}
 % --- ANS (a) --- %
 \subsection{(a) MIMO one-rod aiming system \label{ans:P6-a}}
+\subsubsection{(i) Transfer Function}
+The transfer function from \verb|"zpk"| is truely the same as given in \Cref{eqn:p5:p3-actual} in Problem P5.
+\begin{equation}
+	P_{3}(s) = 
+	\begin{bmatrix}
+		-\frac{0.8889\,(s+3.834)\,(s-3.834)}{s^2\,(s-4.427)\,(s+4.427)} & \frac{-1.3333\,s^2}{s^2 \, (s-4.427)\,(s+4.427)} \\
+		-\frac{-1.3333}{(s-4.427)\,(s+4.427)} & \frac{8.0}{(s-4.427)\,(s+4.427)}
+	\end{bmatrix}
+	\label{eqn:p5:p3-actual2}
+\end{equation}
 
+\subsubsection{(ii) Plain State-Feedback Control with Integral Action}
+\paragraph{Augmented System is Controllable}
+From the matlab, we can find the rank of the controllability matrix is 6 (full rank), hence, the augmented system is controllable.
+
+\paragraph{Closed-loop Step Response}
+Poles are placed about $s=-20$, specifically: $\{-19.9900 , -19.9800 , -19.9700 , -20.0100 , -20.0200 , -20.0300\}$.
+
+The closed-loop step response is plotted as shown in \Cref{fig:p6a:step-response} below.
+\begin{figure}[H]
+	\centering
+	\includegraphics[height=350px]{../matlab/output/p6/mimo_response_IC=0}
+	\caption{Closed Loop Step Response}
+	\label{fig:p6a:step-response}
+\end{figure}
+
+\clearpage
+\paragraph{[Optional] Simulation:}
+As we may see in the simulation result below, the base control is quite perfect and behaves much better than the decentralized design back in \Cref{ans:P5-f}. However, the rod angle control suffers a sever undershoot to the base position in terms of transient performance, which is significantly worse than the decentralized design in \Cref{ans:P5-f}. The system is much responsive at the cost of the significant coupling effects when controlling the $\theta$ angular position.
+   
+\textbf{- Step Input of $r_{w}=1\unit{m}$:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6/mimo_sim_s=-20 fixed-theta}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6/square_response_s=-20 fixed-theta}}
+	\caption{Simulation and Step Response for step input of $r_w=1$}
+	\label{fig:p6a:step-response:rw}
+\end{figure}
+
+\textbf{- Step Input of $r_{\theta}=0.5\unit{rad}$:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6/mimo_sim_s=-20 fixed-w}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6/square_response_s=-20 fixed-w}}
+	\caption{Simulation and Step Response for step input of $r_\theta=0.5$}
+	\label{fig:p6a:step-response:rtheta}
+\end{figure}
+
+\textbf{- Combined Step Input:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6/mimo_sim_s=-20 both}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6/square_response_s=-20 both}}
+	\caption{Simulation and Step Response for step input of $r_w=1$ and $r_\theta=0.5$}
+	\label{fig:p6a:step-response:both}
+\end{figure}
+
+\paragraph{[Optional] Place the poles further from the origin ($s=-40$):}
+As we increase the pole further into LHP, the system response speeds up, and it also result a much significant undershoot of the base position when controlling the angle of the joint as shown in \Cref{fig:p6a:step-response:rtheta:40}. 
+
+As we increase further r, the system is on the verge of instability. 
+
+\textbf{- Step Input of $r_{w}=1\unit{m}$:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6/mimo_sim_s=-40 fixed-theta}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6/square_response_s=-40 fixed-theta}}
+	\caption{Simulation and Step Response for step input of $r_w=1$}
+	\label{fig:p6a:step-response:rw:40}
+\end{figure}
+
+\textbf{- Step Input of $r_{\theta}=0.5\unit{rad}$:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6/mimo_sim_s=-40 fixed-w}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6/square_response_s=-40 fixed-w}}
+	\caption{Simulation and Step Response for step input of $r_\theta=0.5$}
+	\label{fig:p6a:step-response:rtheta:40}
+\end{figure}
+
+\textbf{- Combined Step Input:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6/mimo_sim_s=-40 both}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6/square_response_s=-40 both}}
+	\caption{Simulation and Step Response for step input of $r_w=1$ and $r_\theta=0.5$}
+	\label{fig:p6a:step-response:both:40}
+\end{figure}
+
+\clearpage
 % --- ANS (b) --- %
 \subsection{(b) MIMO two-rod aiming system \label{ans:P6-b}}
+\subsubsection{(i) Transfer Function}
+From matlbab, we may find the transfer function for two-rod system:
+
+\begin{align}
+	P_6(s) = 
+	\begin{bmatrix}
+		\frac{ 0.9333 (s+10.16) (s+3.788) (s-10.16) (s-3.788)}{s^2 (s+10.52) (s+4.331) (s-10.52) (s-4.331)} &
+		\frac{-2.4 (s+7.668) (s-7.668) (s^2 + 1.199e-14)}{s^2 (s+10.52) (s+4.331) (s-10.52) (s-4.331)} & 
+		\frac{ 0.8 (s^2 + 7.27e-15) (s^2 + 176.4)}{s^2 (s+10.52) (s+4.331) (s-10.52) (s-4.331)}
+		\\
+		\frac{-2.4 (s-7.668) (s+7.668)}{(s+10.52) (s+4.331) (s-10.52) (s-4.331)} & 
+		\frac{ 33.6 (s-5.797) (s+5.797)}{ (s+10.52) (s+4.331) (s-10.52) (s-4.331)} &
+		\frac{-43.2 (s-1.032e-07) (s+1.032e-07)}{(s+10.52) (s+4.331) (s-10.52) (s-4.331)}
+		\\
+		\frac{ 0.8 (s^2 + 176.4)}{ (s+10.52) (s+4.331) (s-10.52) (s-4.331)} & 
+		\frac{-43.2 s^2}{ (s+10.52) (s+4.331) (s-10.52) (s-4.331)} & 
+		\frac{110.4 (s-5.539) (s+5.539)}{(s+10.52) (s+4.331) (s-10.52) (s-4.331)}	
+	\end{bmatrix}
+\end{align}
+
+\subsubsection{(ii) Plain State-Feedback Control with Integral Action}
+\paragraph{Augmented System is Controllable}
+From matlab, we can find the controllability rank is 9, hence it is full rank and the system is controllable.
+
+\paragraph{Closed-loop Step Response}
+Poles are placed about $s=-20$, and the closed-loop step response is plotted as shown in \Cref{fig:p6b:step-response} below.
+\begin{figure}[H]
+	\centering
+	\includegraphics[height=400px]{../matlab/output/p6b/mimo_response_IC=0}
+	\caption{Closed Loop Step Response}
+	\label{fig:p6b:step-response}
+\end{figure}
+
+
+\subsubsection{(iii) Observer-based State-Feedback Control with Integral Action}
+\paragraph{Observability}
+From matlab, we can find the observability rank is 6, hence the state-space realization is fully observable.
+After placing poles at $s=-20$ and poles of observer error at $s=-4$, we can obtain the closed-loop step response in red color in \Cref{fig:p6b:step-response:obs} below. If we change the initial error values of $0.5$ in \verb|`lsim'|, we can see the ``locking on" effects as shown in orange color in \Cref{fig:p6b:step-response:obs}. We may see the observer-based state-feedback control is quite powerful, and it is capable to reach state equilibrium quickly.
+
+\paragraph{Closed-loop step response}
+\begin{figure}[H]
+	\centering
+	\includegraphics[height=450px]{../matlab/output/p6b/mimo_response_Cls_obs IC=0}
+	\caption{Closed Loop Step Response (Observer-based)}
+	\label{fig:p6b:step-response:obs}
+\end{figure}
+
+\clearpage
+\paragraph{[Optional] Simulation:}
+As we may expected and seen from the simulation and step response below, the response is nearly perfect, and no significant overshoot nor cross-channeling disturbance observed.
+
+\textbf{- Step Input of $r_{w}=1\unit{m}$:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6b/mimo_sim_Obs s=-20 move-w}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6b/response_Obs s=-20 move-w}}
+	\caption{Simulation and Step Response for step input of $r_w=1$}
+	\label{fig:p6b:step-response:rw}
+\end{figure}
+
+\textbf{- Step Input of $r_{\theta_1}=0.5\unit{rad}$:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6b/mimo_sim_Obs s=-20 move-theta1}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6b/response_Obs s=-20 move-theta1}}
+	\caption{Simulation and Step Response for step input of $r_{\theta_1}=0.5$}
+	\label{fig:p6b:step-response:rtheta1}
+\end{figure}
+
+\textbf{- Step Input of $r_{\theta_2}=0.5\unit{rad}$:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6b/mimo_sim_Obs s=-20 move-theta2}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6b/response_Obs s=-20 move-theta2}}
+	\caption{Simulation and Step Response for step input of $r_{\theta_2}=0.5$}
+	\label{fig:p6b:step-response:rtheta2}
+\end{figure}
+
+\textbf{- Combined Step Input:}
+\begin{figure}[H]
+	\centering
+	\subfloat[Simulation]{\includegraphics[height=180px]{../matlab/output/p6b/mimo_sim_Obs s=-20 move-all}} \quad
+	\subfloat[Step Response]{\includegraphics[height=180px]{../matlab/output/p6b/response_Obs s=-20 move-all}}
+	\caption{Simulation and Step Response for step input of $r_w=1$ and $r_\theta=0.5$}
+	\label{fig:p6b:step-response:both:40}
+\end{figure}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ************************************************************************** %%
@@ -408,12 +569,11 @@ The result looks pretty good, except the undershoot in the rod angle from the co
 \appendix
 \begin{appendices}
 % INPUT UR APPENDIX
-%\section{Code for Main}
-%\lstinputlisting[language=MATLAB, caption=Main Lab Contents, label=code:main]{../matlab/main_p3p4.m}
-%
-%
-%\section{Code for Helper Class}
-%\lstinputlisting[language=MATLAB, caption=Helper and commonly used functions by main, label=code:helper]{../matlab/helper.m}
+\section{Code for Main}
+\lstinputlisting[language=MATLAB, caption=Main Lab Contents, label=code:main]{../matlab/main_p5p6.m}
+
+\section{Code for Helper Class}
+\lstinputlisting[language=MATLAB, caption=Helper and commonly used functions by main, label=code:helper]{../matlab/helper.m}
 
 \end{appendices}
 

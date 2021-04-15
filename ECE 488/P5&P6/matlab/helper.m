@@ -143,9 +143,92 @@ classdef helper
             % Simulate
             if ifsim
                  figure()
-                 single_pend_fancy_sim(t, y, r, 1, 50, tag);
+                 single_pend_fancy_sim(t, y, r, 1, 1, tag);
                  helper.saveFigure([300, 300], FOLDER, sprintf("mimo_sim_%s", tag))
             end
+        end
+        function simulation_and_plot_mimo_double_pendulum(TF, r, t, tag, ifsim, FOLDER, verbose)
+            fprintf("=== SIMULATION [%s:%s] ===\n", FOLDER, tag)
+            y = lsim(TF, r, t);
+
+            % plot ref & resp:
+            figure()
+            subplot(3, 1, 1)
+            hold on;
+            plot(t, r(:,1), '--', 'color', 'blue')
+            plot(t, y(:,1))
+            grid on;
+            ylabel("w [m]")
+            legend(["r_{w}", "w"])
+
+            subplot(3, 1, 2)
+            hold on;
+            plot(t, r(:,2), '--', 'color', 'blue')
+            plot(t, y(:,2))
+            grid on;
+            ylabel("\theta_1 [rad/s]")
+            legend(["r_{\theta_1}", "\theta_1"])
+
+            subplot(3, 1, 3)
+            hold on;
+            plot(t, r(:,3), '--', 'color', 'blue')
+            plot(t, y(:,3))
+            grid on;
+            ylabel("\theta_2 [rad/s]")
+            legend(["r_{\theta_2}", "\theta_2"])
+
+            helper.saveFigure([400, 300], FOLDER, sprintf("response_%s", tag))
+
+            % Simulate
+            if ifsim
+                 figure()
+                 double_pend_fancy_sim(t, y, r, 1, 1, 1, tag);
+                 helper.saveFigure([300, 300], FOLDER, sprintf("mimo_sim_%s", tag))
+            end
+        end
+        function mimo_step_response(TF, T_END, OUT_LABEL, IN_LABEL, IC, tag, FOLDER)
+            fprintf("=== GENERATE STEP RESPONSE [%s:%s] ===\n", FOLDER, tag)
+            t  = 0:0.001:T_END;
+            r_step = ones(1, length(t))';
+            r_zero = zeros(1, length(t))';
+
+            [n, d] = size(TF);
+            [icn, icd]=size(IC);
+            
+            figure()
+            for i = 1:d
+                r = repmat(r_zero,1,n);
+                r(:, i) = r_step;
+                
+                for k = 1:icn
+                    y = lsim(TF, r, t, IC(k,:));
+                    for j = 1:n
+                        ax(j,i) = subplot(n, d, j*n+i-n);
+                        hold on;
+                        grid on;
+                        if k == 1
+                            plot(t, r(:,j), '--', 'color', 'blue')
+                            plot(t, y(:,j), 'red')
+                        else
+                            plot(t, y(:,j))
+                        end 
+                        
+                        if i == 1
+                            ylabel(OUT_LABEL(j));
+                        end
+                        if j == 1
+                            title(IN_LABEL(i));
+                        end
+                        ylim([min(y(:,j))-0.1 max(y(:,j))+0.1]);
+                    end
+                end
+            end
+            
+            for j = 1:n
+                linkaxes(ax(j,:),'y');
+            end
+            
+            helper.saveFigure([n*200, d*200], FOLDER, sprintf("mimo_response_%s", tag))
         end
         %% Custom Bode
         function bode_plot_custom(TF, tag, FOLDER, verbose)

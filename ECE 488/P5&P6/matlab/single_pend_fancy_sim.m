@@ -49,8 +49,9 @@ ymax = max(ymax, (xmax-xmin)+ymin);
 width = L/8;  % width of the 'cart' is twice this value
 
 
-c = input('Hit: d for dynamic simulation, f for final plot, s for skip simulation...','s');
-c=c(1);
+% c = input('Hit: d for dynamic simulation, f for final plot, s for skip simulation...','s');
+% c=c(1);
+c = 'f';
 if c=='s'
     return
 end
@@ -75,13 +76,13 @@ for i = 1:skipterm:length(T)
    theta_ref = R(i,2);
   
    % draw cart as a thick line
-   h=plot([xposition-width xposition+width],[0 0],'k'); set(h,'linewidth',5);
+   h1=plot([xposition-width xposition+width],[0 0],'k'); set(h1,'linewidth',5);
    hold on
    
    % draw rod 
    t1 = xposition+L*sin(theta);
    t2 = L*cos(theta);
-   h=plot([xposition t1],[0 t2],'b'); set(h, 'linewidth',3);
+   h2=plot([xposition t1],[0 t2],'b'); set(h2, 'linewidth',3);
     
    
    if dynamic
@@ -102,6 +103,8 @@ for i = 1:skipterm:length(T)
       pause(deltaT)
    else  
       % keep holding plot
+      h1.Color(4) = ((i)/length(T) * 1.0); % compute alpha
+      h2.Color(4) = ((i)/length(T) * 1.0); % compute alpha
    end % if
    
     if savemovie % ddd Apr 3 2019
