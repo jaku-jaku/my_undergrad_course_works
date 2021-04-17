@@ -194,10 +194,14 @@ class TwitterLikePredictor:
         # gen folder:
         jx_lib.create_folder(self.config.OUTPUT_FOLDER)
         jx_lib.create_folder(abspath("processed_data"))
+        # Prepare Hardware ==== ==== ==== ==== ==== ==== ==== #
+        self._print("Prepare Hardware")
+        if self.config.USE_GPU:
+            self.device = self.load_device()
         # Pre-processing Dataset ==== ==== ==== ==== ==== ==== ==== #
         path_lite = abspath('processed_data/preprocessed-lite-train-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
         path_preprocessed = abspath('processed_data/preprocessed-idx-train-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
-        path_dict = abspath('processed_data/bow-dict-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
+        path_dict = abspath('processed_data/bow-dict-[{}].json'.format(self.config.PRE_PROCESS_TAG))
         if os.path.exists(path_preprocessed) and not self.config.FORCE_REBUILD:
             # TODO: file size to large
             self.training_dataset = pd.read_csv(path_preprocessed)
@@ -207,9 +211,10 @@ class TwitterLikePredictor:
                 x_tag = "norm-tweet-bow-idx-array",
                 pd_data = self.training_dataset,
                 config = self.config,
+                if_literal_eval = True
             )
-            with open(path_dict, "w") as f:
-                self.word_to_ix = f.read()
+            with open(path_dict, "r") as f:
+                self.word_to_ix = json.load(f)
             # gen const:
             labels = self.training_dataset[self.config.Y_TAG].unique()
             self.VOCAB_SIZE = len(self.word_to_ix)
@@ -231,10 +236,6 @@ class TwitterLikePredictor:
             labels = self.training_dataset[self.config.Y_TAG].unique()
             self.label_to_ix = {i:i for i in labels}
             self.NUM_LABELS = len(labels)
-            # Prepare Hardware ==== ==== ==== ==== ==== ==== ==== #
-            self._print("Prepare Hardware")
-            if self.config.USE_GPU:
-                self.device = self.load_device()
             # Prepare Dataset ==== ==== ==== ==== ==== ==== ==== #
             self._print("Prepare Training Dataset")
             self.pytorch_data_train_id, self.pytorch_data_eval_id, \
@@ -246,9 +247,9 @@ class TwitterLikePredictor:
             self._generate_bow_dictionary(
                 data = pytorch_data_train,
             )
-            with open(path_dict, "w") as f:
-                json.dump(self.word_to_ix, f)
-                f.close()
+            f = open(path_dict, "w")
+            json.dump(self.word_to_ix, f)
+            f.close()
 
             # Pre-process Dataset (Word => vector) ==== ==== ==== ==== ==== #
             self._print("Prepare Training Dataset Pre-Vectorization")
@@ -383,15 +384,21 @@ class TwitterLikePredictor:
         pd_data,
         x_tag: str,
         y_tag: str,
-        range: List[int]
+        range: List[int],
+        if_literal_eval: bool = False
     ) -> "id, training pair":
         id_,x_,y_ = pd_data['id'][range[0]:range[1]], pd_data[x_tag][range[0]:range[1]], pd_data[y_tag][range[0]:range[1]]
-        return id_.tolist(), [(x,y) for x,y in zip(x_,y_)]
+        if if_literal_eval:
+            return id_.tolist(), [(literal_eval(x),y) for x,y in zip(x_,y_)]
+        else:
+            return id_.tolist(), [(x,y) for x,y in zip(x_,y_)]
+
 
     @staticmethod
     def split_training_dataset(
         pd_data, config, x_tag,
-        train_id = None, eval_id = None
+        train_id = None, eval_id = None,
+        if_literal_eval: bool = False
     ):
         if train_id is not None and eval_id is not None:
             pytorch_data_train = [(pd_data[x_tag][id_], pd_data[config.Y_TAG][id_]) for id_ in train_id]
@@ -407,12 +414,14 @@ class TwitterLikePredictor:
             train_id,pytorch_data_train = TwitterLikePredictor.pandas2pytorch(
                 pd_data = pd_data,
                 x_tag = x_tag, y_tag = config.Y_TAG,
-                range =[0, N_TRAIN]
+                range =[0, N_TRAIN],
+                if_literal_eval = if_literal_eval
             )
             eval_id,pytorch_data_eval = TwitterLikePredictor.pandas2pytorch(
                 pd_data = pd_data,
                 x_tag = x_tag, y_tag = config.Y_TAG,
-                range =[N_TRAIN, N_TRAIN+N_TEST]
+                range =[N_TRAIN, N_TRAIN+N_TEST],
+                if_literal_eval = if_literal_eval
             )
         return train_id, eval_id, pytorch_data_train, pytorch_data_eval
 
@@ -538,8 +547,8 @@ class TwitterLikePredictor:
                 pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag=tag)
                 self.save_model(tag=tag)
             
-            if (n_accuracy_drops >= 2):
-                self._print("> Early Stopping due to accuracy drops in last 2 iterations!")
+            if (n_accuracy_drops >= 3):
+                self._print("> Early Stopping due to accuracy drops in last 3 iterations!")
                 break
 
         self._print("End of Program")
@@ -650,20 +659,27 @@ We will try to train possible models and choose the best model
 # # Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
 DICT_OF_CONFIG = {
     "trial-1": TwitterLikePredictor.PredictorConfiguration(
-        MODEL_TAG             = "trail-1",
+        MODEL_TAG             = "trial-1",
+        BOW_TOTAL_NUM_EPOCHS  = 50,
+        D_HIDDEN              = 800,
         LEARNING_RATE         = 0.0001,
-        MODEL_VERSION         = "v"
+        MODEL_VERSION         = "v2"
     ), #= Comment: <0.47 (less than the best)
+    # "trial-1": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "trail-1",
+    #     LEARNING_RATE         = 0.0001,
+    #     MODEL_VERSION         = "v"
+    # ), #= Comment: <0.47 (less than the best)
     # "trial-2": TwitterLikePredictor.PredictorConfiguration(
     #     MODEL_TAG             = "trail-2",
-    #     BOW_TOTAL_NUM_EPOCHS  = 20, # 20
+    #     BOW_TOTAL_NUM_EPOCHS  = 20,
     #     D_HIDDEN              = 400,
     #     MOMENTUM              = 0.8,
     #     MODEL_VERSION         = "v2"
     # ),
     # "trial-2.1": TwitterLikePredictor.PredictorConfiguration(
     #     MODEL_TAG             = "trail-2.1",
-    #     BOW_TOTAL_NUM_EPOCHS  = 50, # 20
+    #     BOW_TOTAL_NUM_EPOCHS  = 50,
     #     D_HIDDEN              = 1200,
     #     LEARNING_RATE         = 0.0001,
     #     MODEL_VERSION         = "v2"
