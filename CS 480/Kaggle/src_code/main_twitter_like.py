@@ -7,10 +7,11 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from ast import literal_eval
 import os
 import sys
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Any, List
 import re
 import emoji
@@ -90,6 +91,23 @@ class BOW_Module(nn.Module):
         # input => Linear => softmax
         return F.log_softmax(self.linear(bow_vec), dim=1)
 
+class BOW_ModuleV2(nn.Module):
+    def __init__(self, num_labels, vocab_size, 
+        dropout=0.2, d_hidden=100, n_layers=2,
+    ):
+        super(BOW_ModuleV2, self).__init__()
+        self.linear1 = nn.Linear(vocab_size, d_hidden)
+        self.linear2 = nn.Linear(d_hidden, num_labels)
+        # self.dropout = nn.Dropout(dropout)
+
+    def forward(self, bow_vec):
+        # input => Linear => softmax
+        y = self.linear1(bow_vec)
+        # y = self.dropout(y)
+        y = self.linear2(y)
+        outputs =  F.log_softmax(y, dim=1)
+        return outputs
+
 class TwitterLikePredictor:
     # %% generate a word to index:
     word_to_ix = {}
@@ -101,22 +119,27 @@ class TwitterLikePredictor:
     @dataclass
     class PredictorConfiguration:
         Y_TAG                : str              = "likes_count"
-        USE_GPU              : bool             = False
+        USE_GPU              : bool             = True
         PROCESSED_TWEET_TAG  : str              = "norm-tweet"
         OUTPUT_FOLDER        : str              = abspath("output")
-        MODEL_TAG            : str              = "test-1"
+        MODEL_TAG            : str              = "default"
         # tweet pre-processing: 
         DELIMITER_SET        : str              = "; |, |、|。| "
-        SYMBOLE_REMOVE_LIST  : str              = None
-        KEYS_TO_REMOVE_LIST  : List             = None
+        SYMBOLE_REMOVE_LIST  : str              = field(default_factory=lambda: ["\[", "\]", "\(", "\)"])
+        KEYS_TO_REMOVE_LIST  : List             = field(default_factory=lambda: ["http", "arXiv", "https"])
         # training set:
         SHUFFLE_TRAINING     : bool             = False
         PERCENT_TRAINING_SET : float            = 0.9
         # bag of words (Tweeter Interpretation):
         BOW_TOTAL_NUM_EPOCHS : int              = 10
         LOSS_FUNC            : nn               = nn.NLLLoss()
-        LEARNING_RATE        : float            = 0.1
-        
+        LEARNING_RATE        : float            = 0.001
+        FORCE_REBUILD        : bool             = True 
+        OPTIMIZER            : float            = optim.SGD
+        MOMENTUM             : float            = 0.9
+        MODEL_VERSION        : str              = "v2"
+        D_HIDDEN             : int              = 100
+
     def _print(self, content):
         if self.verbose:
             print("[TLP] ", content)
@@ -133,17 +156,21 @@ class TwitterLikePredictor:
         jx_lib.create_folder(self.config.OUTPUT_FOLDER)
         jx_lib.create_folder(abspath("processed_data"))
         # Pre-processing Dataset ==== ==== ==== ==== ==== ==== ==== #
-        self._print("Pre-processing Dataset ...")
-        self.training_dataset = self.generate_tweet_message_normalized_column(pd_data=pd_data_training, config=self.config)
-        # save frame
         path = abspath('processed_data/train-[{}].csv'.format(self.config.MODEL_TAG))
-        self._print("Processed Dataset Saved @ {}".format(path))
-        self.training_dataset.to_csv(path)
+        if os.path.exists(path) and not self.config.FORCE_REBUILD:
+            self.training_dataset = pd.read_csv(path)
+            self._print("Loading Pre-Processed Test Dataset From {} [size:{}]".format(path, self.training_dataset.shape))
+        else:
+            self._print("Pre-processing Dataset ...")
+            self.training_dataset = self.generate_tweet_message_normalized_column(pd_data=pd_data_training, config=self.config)
+            # save frame
+            self._print("Processed Dataset Saved @ {}".format(path))
+            self.training_dataset.to_csv(path)
         # sample:
-        UNIQ_LANG = TRAIN_DATA["language"].unique().tolist()
+        UNIQ_LANG =  self.training_dataset["language"].unique().tolist()
         for lang in UNIQ_LANG:
-            index = TRAIN_DATA.index[TRAIN_DATA["language"] == lang].tolist()[0]
-            self._print("{} > {}".format(lang, TRAIN_DATA["norm-tweet"][index]))
+            index =  self.training_dataset.index[ self.training_dataset["language"] == lang].tolist()[0]
+            self._print("{} > {}".format(lang,  self.training_dataset["norm-tweet"][index]))
         labels = self.training_dataset[self.config.Y_TAG].unique()
         self.label_to_ix = {i:i for i in labels}
         self.NUM_LABELS = len(labels)
@@ -153,18 +180,18 @@ class TwitterLikePredictor:
             self.device = self.load_device()
         # Prepare Dataset ==== ==== ==== ==== ==== ==== ==== #
         self._print("Prepare Training Dataset")
-        self.pytorch_data_train_id, self.pytorch_data_test_id, \
-            self.pytorch_data_train, self.pytorch_data_test = self.split_training_dataset(
+        self.pytorch_data_train_id, self.pytorch_data_eval_id, \
+            self.pytorch_data_train, self.pytorch_data_eval = self.split_training_dataset(
                 TRAIN_DATA = self.training_dataset,
                 config = self.config
             )
         self._generate_bow_dictionary(
             training_data = self.pytorch_data_train,
-            evaluation_data = self.pytorch_data_test
+            evaluation_data = self.pytorch_data_eval
         )
         # Init Model ==== ==== ==== ==== ==== ==== ==== ==== #
         self._print("New Model Created")
-        self.create_new_model()
+        self.create_new_model(version=self.config.MODEL_VERSION)
         if self.config.USE_GPU:
             self.model.to(self.device)
         # REPORT ==== ==== ==== ==== ==== ==== ==== ==== === #
@@ -174,8 +201,11 @@ class TwitterLikePredictor:
         # sample top bag of words
         self.word_count_top_100 = sorted(self.word_count.items(), key=lambda x:-np.sum(x[1]))[:100]
         # print model parameters
-        for param in self.model.parameters():
-            ic(param)
+        if self.version in ["v2"]:
+            self._print("MODEL: {}".format(self.model))
+        else:
+            for param in self.model.parameters():
+                self._print("Model Shape: ".format(param.shape))
         self._print("======================= END OF INIT =======================")
     
     @staticmethod
@@ -230,7 +260,7 @@ class TwitterLikePredictor:
             if (len(pd_data["reply_to"][i]) > 0):
                 descriptive_str.append("[exist:reply:to]")
             # include hashtags: (should already be inside the tweet, but let's emphasize it by repeating)
-            descriptive_str.extend([item for item in pd_data['hashtags'][i]])
+            descriptive_str.extend(literal_eval(pd_data['hashtags'][i]))
             # extend messages
             new_messages.extend(descriptive_str)
             # append to normalized tweet data
@@ -240,8 +270,17 @@ class TwitterLikePredictor:
         return pd_data
 
 
-    def create_new_model(self):
-        self.model = BOW_Module(self.NUM_LABELS, self.VOCAB_SIZE)
+    def create_new_model(self, version="v2"):
+        self._print("Use Model Version: {}".format(version))
+        self.version = version
+        if version == "v2":
+            # self.model = nn.Sequential(
+            #     nn.Linear(self.VOCAB_SIZE, self.NUM_LABELS),
+            #     nn.Softmax(dim=1)
+            # )
+            self.model = BOW_ModuleV2(self.NUM_LABELS, self.VOCAB_SIZE, d_hidden=self.config.D_HIDDEN)
+        else:
+            self.model = BOW_Module(self.NUM_LABELS, self.VOCAB_SIZE)
 
     @staticmethod
     def load_device():
@@ -282,12 +321,12 @@ class TwitterLikePredictor:
             x_tag = config.PROCESSED_TWEET_TAG, y_tag = config.Y_TAG,
             range =[0, N_TRAIN]
         )
-        test_id,pytorch_data_test = TwitterLikePredictor.pandas2pytorch(
+        test_id,pytorch_data_eval = TwitterLikePredictor.pandas2pytorch(
             pd_data = TRAIN_DATA,
             x_tag = config.PROCESSED_TWEET_TAG, y_tag = config.Y_TAG,
             range =[N_TRAIN, N_TRAIN+N_TEST]
         )
-        return train_id, test_id, pytorch_data_train, pytorch_data_test
+        return train_id, test_id, pytorch_data_train, pytorch_data_eval
 
     def _generate_bow_dictionary(
         self,
@@ -303,40 +342,41 @@ class TwitterLikePredictor:
                     self.word_count[word][y] += 1
         self.VOCAB_SIZE = len(self.word_to_ix)
 
-    @staticmethod
-    def make_bow_vector(sentence, word_to_ix):
-        vec = torch.zeros(len(word_to_ix))
+    def make_bow_vector(self, sentence):
+        vec = torch.zeros(len(self.word_to_ix))
         for word in sentence:
             # do not use word if it was not in the dictionary, this happens when unseen testing dataset
-            if word in word_to_ix:
-                vec[word_to_ix[word]] += 1
+            if word in self.word_to_ix:
+                vec[self.word_to_ix[word]] += 1
         return vec.view(1, -1)
 
-    @staticmethod
-    def make_target(label, label_to_ix):
-        return torch.LongTensor([label_to_ix[label]])
+    def make_target(self, label):
+        return torch.LongTensor([self.label_to_ix[label]])
 
-    def train(self, gen_plot:bool=True):
+    def train(self, gen_plot:bool=True, sample_threshold:float=0.5):
+        self._print("\n\nTRAING BEGIN -----------------------------:")
         report_ = ProgressReport()
-        optimizer_ = optim.SGD(self.model.parameters(), lr=self.config.LEARNING_RATE)
+        optimizer_ = self.config.OPTIMIZER(
+            self.model.parameters(), lr=self.config.LEARNING_RATE, momentum=self.config.MOMENTUM)
         loss_ = self.config.LOSS_FUNC
 
+        n_accuracy_drops = 0
         for epoch in range(self.config.BOW_TOTAL_NUM_EPOCHS):
-            print("> epoch {}/{}:".format(epoch + 1, self.config.BOW_TOTAL_NUM_EPOCHS))
+            self._print("> epoch {}/{}:".format(epoch + 1, self.config.BOW_TOTAL_NUM_EPOCHS))
     
             train_loss_sum, train_acc_sum, train_n, train_start = 0.0, 0.0, 0, time.time()
-            test_loss_sum, test_acc_sum, test_n, test_start = 0.0, 0.0, 0, time.time()
+            val_loss_sum, val_acc_sum, val_n, val_start = 0.0, 0.0, 0, time.time()
 
             # TRAIN -----------------------------:
             i, n = 0, len(self.pytorch_data_train)
             for instance, label in self.pytorch_data_train:
                 i += 1
-                print(" > Training [{}/{}]".format(i, n),  end='\r')
+                print("\r > Training [{}/{}]".format(i, n),  end='')
                 # 1: Clear PyTorch Cache
                 self.model.zero_grad()
                 # 2: Convert BOW to vectors:
-                bow_vec = self.make_bow_vector(instance, self.word_to_ix)
-                target = self.make_target(label, self.label_to_ix)
+                bow_vec = self.make_bow_vector(instance)
+                target = self.make_target(label)
 
                 # 3: fwd:
                 if self.config.USE_GPU:
@@ -351,46 +391,64 @@ class TwitterLikePredictor:
                 # Log summay:
                 train_loss_sum += loss.item()
                 train_acc_sum += (log_probs.argmax(dim=1) == label).sum().item()
+                # train_acc_sum += (log_probs.argmax(dim=1) == yi).sum().item()
                 train_n += 1
             
             train_ellapse = time.time() - train_start
+            print("\n",  end='')
     
             # TEST -----------------------------:
-            i, n = 0, len(self.pytorch_data_test)
+            i, n = 0, len(self.pytorch_data_eval)
             with torch.no_grad(): # Not training!
-                for instance, label in self.pytorch_data_test:
+                for instance, label in self.pytorch_data_eval:
                     i += 1
-                    print(" > Validating [{}/{}]".format(i, n),  end='\r')
-                    bow_vec = self.make_bow_vector(instance, self.word_to_ix)
-                    target = self.make_target(label, self.label_to_ix)
+                    print("\r > Validating [{}/{}]".format(i, n),  end='')
+                    bow_vec = self.make_bow_vector(instance)
+                    target = self.make_target(label)
                     if self.config.USE_GPU:
                         bow_vec = bow_vec.to(self.device)
                         target = target.to(self.device)
                     log_probs = self.model(bow_vec)
                     # Log summay:
                     loss = loss_(log_probs, target)
-                    test_loss_sum += loss.item()
-                    test_acc_sum += (log_probs.argmax(dim=1) == label).sum().item()
-                    test_n += 1
+                    val_loss_sum += loss.item()
+                    val_acc_sum += (log_probs.argmax(dim=1) == label).sum().item()
+                    val_n += 1
         
-            test_ellapse = time.time() - test_start
-    
+            val_ellapse = time.time() - val_start
+            print("\n",  end='')
+
+            val_acc = val_acc_sum / val_n
+            if epoch > 1 and report_.history["test_acc"][-1] > val_acc:
+                n_accuracy_drops += 1
+            else:
+                n_accuracy_drops = 0
+
             # Log ------:
             report_.append(
                 epoch         = epoch,
                 train_loss    = train_loss_sum / train_n,
                 train_acc     = train_acc_sum / train_n,
                 train_time    = train_ellapse,
-                test_loss     = test_loss_sum / test_n,
-                test_acc      = test_acc_sum / test_n,
-                test_time     = test_ellapse,
+                test_loss     = val_loss_sum / val_n,
+                test_acc      = val_acc,
+                test_time     = val_ellapse,
                 learning_rate = 0,
                 verbose       = True
             )
 
-            if ((test_acc_sum / test_n) >= 0.55): # early stopping
-                break;
-        
+            if (val_acc >= sample_threshold): 
+                # early sampling, save model that meets minimum threshold
+                self._print("> [Minimum Goal Reached] Attempt to predict, with {}>={}:".format(val_acc, sample_threshold))
+                tag = "autosave-e:{}".format(epoch)
+                pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag=tag)
+                self.save_model(tag=tag)
+            
+            if (n_accuracy_drops >= 3):
+                self._print("> Early Stopping due to accuracy drops in last 3 iterations!")
+                break
+
+        self._print("End of Program")
 
         # OUTPUT REPORT:
         if gen_plot:
@@ -399,23 +457,29 @@ class TwitterLikePredictor:
                 OUT_DIR       = self.config.OUTPUT_FOLDER,
                 tag           = self.config.MODEL_TAG
             )
+        # SAVE Model:
+        self.save_model(tag="final")
         return report_
     
     def predict(self, pd_data, tag=None):
         # pre-process:
         self._print("Pre-processing Test Dataset ...")
-        pd_data_processed = self.generate_tweet_message_normalized_column(
-            pd_data = pd_data, config = self.config
-        )
         path = abspath('processed_data/test-[{}-{}].csv'.format(self.config.MODEL_TAG, tag))
-        self._print("Processed Test Dataset Saved @ {}".format(path))
-        self.training_dataset.to_csv(path)
+        if os.path.exists(path) and not self.config.FORCE_REBUILD:
+            self._print("Loading Pre-Processed Test Dataset From {}".format(path))
+            pd_data_processed = pd.read_csv(path)
+        else:
+            pd_data_processed = self.generate_tweet_message_normalized_column(
+                pd_data = pd_data, config = self.config
+            )
+            self._print("Processed Test Dataset Saved @ {}".format(path))
+            self.training_dataset.to_csv(path)
         # prediction:
         self._print("Predicting ...")
         y_pred = []
         with torch.no_grad(): # Not training!
             for x in TEST_DATA_X[self.config.PROCESSED_TWEET_TAG]:
-                bow_vec = self.make_bow_vector(x, self.word_to_ix)
+                bow_vec = self.make_bow_vector(x)
                 if self.config.USE_GPU:
                     bow_vec = bow_vec.to(self.device)
                 log_probs = self.model(bow_vec)
@@ -431,42 +495,145 @@ class TwitterLikePredictor:
 
         return pd_data_processed, df_pred
 
+    def save_model(self, tag):
+        torch.save(self.model.state_dict(), abspath("output/model-{}-{}.pt".format(self.config.MODEL_TAG, tag)))
 
-# %% USER PARAMS: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+
+# USER PARAMS: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
 # Pre-evaluation:
-CONFIG = TwitterLikePredictor.PredictorConfiguration(
-    Y_TAG                 = "likes_count",
-    USE_GPU               = True,
-    PROCESSED_TWEET_TAG   = "norm-tweet",
-    OUTPUT_FOLDER         = abspath("output"),
-    MODEL_TAG             = "test-epoch-10-v3",
-    # tweet pre-processing:
-    DELIMITER_SET         = '; |, |、|。| ',
-    SYMBOLE_REMOVE_LIST   = [],#["\[", "\]", "\(", "\)", "#"],
-    KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
-    # training set:
-    SHUFFLE_TRAINING      = False,
-    PERCENT_TRAINING_SET  = 0.90, # 0.99
-    # bag of words (Tweeter Interpretation):
-    LOSS_FUNC             = nn.NLLLoss(),
-    BOW_TOTAL_NUM_EPOCHS  = 10, # 20
-    LEARNING_RATE         = 0.001,
-    # PERCENT_TRAINING_SET  = 0.9,
-    # # Best Model so far: test-epoch-1 (Incorporate time ... info.) => 0.462 acc --> 0.45604
-    # BOW_TOTAL_NUM_EPOCHS  = 10,
-    # LEARNING_RATE         = 0.001,
-    # # Best Model so far: test-epoch-1 => 0.4365 acc --> 0.44792
-    # BOW_TOTAL_NUM_EPOCHS  = 20,
-    # LEARNING_RATE         = 0.001,
-    # # Best Model so far: test-epoch-180
-    # BOW_TOTAL_NUM_EPOCHS  = 180,
-    # LEARNING_RATE         = 0.001,
-)
+# CONFIG = TwitterLikePredictor.PredictorConfiguration(
+#     Y_TAG                 = "likes_count",
+#     USE_GPU               = True,
+#     PROCESSED_TWEET_TAG   = "norm-tweet",
+#     OUTPUT_FOLDER         = abspath("output"),
+#     MODEL_TAG             = "test-v2.5-cross",
+#     # tweet pre-processing:
+#     DELIMITER_SET         = '; |, |、|。| ',
+#     SYMBOLE_REMOVE_LIST   = ["\[", "\]", "\(", "\)"],
+#     KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
+#     # training set:
+#     SHUFFLE_TRAINING      = False,
+#     PERCENT_TRAINING_SET  = 0.90, # 0.99
+#     # bag of words (Tweeter Interpretation):
+#     LOSS_FUNC             = nn.NLLLoss(),
+#     BOW_TOTAL_NUM_EPOCHS  = 10, # 20
+#     LEARNING_RATE         = 0.001,
+#     FORCE_REBUILD         = True, # False seems to be slower, I guess caches might be better
+#     OPTIMIZER             = optim.SGD,
+#     MOMENTUM              = 0.8,
+#     MODEL_VERSION         = "v2"
+#     # PERCENT_TRAINING_SET  = 0.9,
+#     # # Best Model so far: test-epoch-1 (Incorporate time ... info.) => 0.462 acc --> 0.45604
+#     # BOW_TOTAL_NUM_EPOCHS  = 10,
+#     # LEARNING_RATE         = 0.001,
+#     # # Best Model so far: test-epoch-1 => 0.4365 acc --> 0.44792
+#     # BOW_TOTAL_NUM_EPOCHS  = 20,
+#     # LEARNING_RATE         = 0.001,
+#     # # Best Model so far: test-epoch-180
+#     # BOW_TOTAL_NUM_EPOCHS  = 180,
+#     # LEARNING_RATE         = 0.001,
+# )
 
-# ## INIT: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
-TLP_Engine = TwitterLikePredictor(pd_data_training=TRAIN_DATA, verbose=True, config=CONFIG)
+# # INIT ENGINE: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+# TLP_Engine = TwitterLikePredictor(pd_data_training=TRAIN_DATA, verbose=True, config=CONFIG)
 
-# %% TODO: Feature reductions
+# # TRAIN: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+# report = TLP_Engine.train(gen_plot=True, sample_threshold=0.5)
+
+# # PREDICTION: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+# pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag="test")
+
+# %% Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
+DICT_OF_CONFIG = {
+    "trial-1": TwitterLikePredictor.PredictorConfiguration(
+        # Y_TAG                 = "likes_count",
+        # USE_GPU               = True,
+        # PROCESSED_TWEET_TAG   = "norm-tweet",
+        # OUTPUT_FOLDER         = abspath("output"),
+        MODEL_TAG             = "trail-1",
+        # tweet pre-processing:
+        # DELIMITER_SET         = '; |, |、|。| ',
+        # SYMBOLE_REMOVE_LIST   = ["\[", "\]", "\(", "\)"],
+        # KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
+        # training set:
+        # SHUFFLE_TRAINING      = False,
+        # PERCENT_TRAINING_SET  = 0.90, # 0.99
+        # bag of words (Tweeter Interpretation):
+        # LOSS_FUNC             = nn.NLLLoss(),
+        # BOW_TOTAL_NUM_EPOCHS  = 10, # 20
+        # LEARNING_RATE         = 0.001,
+        # FORCE_REBUILD         = True, # False seems to be slower, I guess caches might be better
+        # OPTIMIZER             = optim.SGD,
+        D_HIDDEN              = 100,
+        MOMENTUM              = 0.8,
+        MODEL_VERSION         = "v2"
+    ),
+    "trial-2": TwitterLikePredictor.PredictorConfiguration(
+        # Y_TAG                 = "likes_count",
+        # USE_GPU               = True,
+        # PROCESSED_TWEET_TAG   = "norm-tweet",
+        # OUTPUT_FOLDER         = abspath("output"),
+        MODEL_TAG             = "trail-2",
+        # tweet pre-processing:
+        # DELIMITER_SET         = '; |, |、|。| ',
+        # SYMBOLE_REMOVE_LIST   = ["\[", "\]", "\(", "\)"],
+        # KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
+        # training set:
+        # SHUFFLE_TRAINING      = False,
+        # PERCENT_TRAINING_SET  = 0.90, # 0.99
+        # bag of words (Tweeter Interpretation):
+        # LOSS_FUNC             = nn.NLLLoss(),
+        BOW_TOTAL_NUM_EPOCHS  = 20, # 20
+        # LEARNING_RATE         = 0.001,
+        # FORCE_REBUILD         = True, # False seems to be slower, I guess caches might be better
+        # OPTIMIZER             = optim.SGD,
+        D_HIDDEN              = 400,
+        MOMENTUM              = 0.8,
+        MODEL_VERSION         = "v2"
+    ),
+    "trial-3": TwitterLikePredictor.PredictorConfiguration(
+        # Y_TAG                 = "likes_count",
+        # USE_GPU               = True,
+        # PROCESSED_TWEET_TAG   = "norm-tweet",
+        # OUTPUT_FOLDER         = abspath("output"),
+        MODEL_TAG             = "trail-3",
+        # tweet pre-processing:
+        # DELIMITER_SET         = '; |, |、|。| ',
+        # SYMBOLE_REMOVE_LIST   = ["\[", "\]", "\(", "\)"],
+        # KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
+        # training set:
+        # SHUFFLE_TRAINING      = False,
+        # PERCENT_TRAINING_SET  = 0.90, # 0.99
+        # bag of words (Tweeter Interpretation):
+        # LOSS_FUNC             = nn.NLLLoss(),
+        BOW_TOTAL_NUM_EPOCHS  = 100, # 20
+        LEARNING_RATE         = 0.0001,
+        # FORCE_REBUILD         = True, # False seems to be slower, I guess caches might be better
+        # OPTIMIZER             = optim.SGD,
+        D_HIDDEN              = 400,
+        MOMENTUM              = 0.8,
+        MODEL_VERSION         = "v2"
+    ),
+}
+
+min_threshold = 0.47
+for name_, config_ in DICT_OF_CONFIG.items():
+    print("================================ ================================ BEGIN:{} , Goal:{} =>".format(name_, min_threshold))
+    # INIT ENGINE: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+    TLP_Engine = TwitterLikePredictor(pd_data_training=TRAIN_DATA, verbose=True, config=config_)
+
+    # TRAIN: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+    report = TLP_Engine.train(gen_plot=True, sample_threshold=min_threshold)
+    max_validation_acc = np.max(report.history["test_acc"])
+    if max_validation_acc > min_threshold:
+        print("\n>>>> Best Model So Far: {} \n".format(max_validation_acc))
+        min_threshold = max_validation_acc # rise standard
+
+    # PREDICTION: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+    pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag=name_)
+
+
+# %% Word Analysis: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
 list_top100 = list(map(np.array, zip(* TLP_Engine.word_count_top_100)))
 # Plot Language and video Count:
 fig = plt.figure(figsize=(40,40))
@@ -476,16 +643,6 @@ plt.bar(list_top100[0], list_top100[1][:, 0], label="0")
 plt.bar(list_top100[0], list_top100[1][:, 1], label="1")
 plt.bar(list_top100[0], list_top100[1][:, 2], label="2")
 plt.bar(list_top100[0], list_top100[1][:, 3], label="3")
-
-# %% TRAIN: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
-report = TLP_Engine.train(gen_plot=True)
-
-# %% PREDICTION: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
-pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag="test")
-
-
-# %% Save model:
-torch.save(TLP_Engine.model.state_dict(), abspath("output/model-{}.pt".format(TLP_Engine.config.MODEL_TAG)))
 
 # %% POST-ANALYSIS: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
 """
@@ -499,18 +656,18 @@ validation_data = pd.DataFrame(data=TLP_Engine.training_dataset, index=range(N_T
 # for id_, tweet in zip(validation_data['id'], validation_data['norm-tweet']):
 #     dict_tweet_to_id[''.join(tweet)] = id_
 #%% Lets try redo the test, and analyze it
-n = len(TLP_Engine.pytorch_data_test)
+n = len(TLP_Engine.pytorch_data_eval)
 validation_data["pred-likes"] = [0] * n
 validation_data["pred-ifcorrect"] = [False] * n
 validation_data["pred-probabilities"] = [[0,0,0,0]] * n
 loss_ = TLP_Engine.config.LOSS_FUNC
 with torch.no_grad(): # Not training!
     i = -1
-    for instance, label in TLP_Engine.pytorch_data_test:
+    for instance, label in TLP_Engine.pytorch_data_eval:
         i += 1
-        print(" > Predicting [{}/{}]".format(i+1, n),  end='\r')
-        bow_vec = TLP_Engine.make_bow_vector(instance, TLP_Engine.word_to_ix)
-        target = TLP_Engine.make_target(label, TLP_Engine.label_to_ix)
+        print("\r > Predicting [{}/{}]".format(i+1, n),  end='')
+        bow_vec = TLP_Engine.make_bow_vector(instance)
+        target = TLP_Engine.make_target(label)
         if TLP_Engine.config.USE_GPU:
             bow_vec = bow_vec.to(TLP_Engine.device)
             target = target.to(TLP_Engine.device)
@@ -521,7 +678,7 @@ with torch.no_grad(): # Not training!
 
         # find index and store:
         # id_ = dict_tweet_to_id[''.join(instance)]
-        id_ = TLP_Engine.pytorch_data_test_id[i]
+        id_ = TLP_Engine.pytorch_data_eval_id[i]
         validation_data.loc[id_, "pred-likes"] = (y_pred)
         validation_data.loc[id_, "pred-ifcorrect"] = ((y_pred == label))
         validation_data.loc[id_, "pred-probabilities"] = (loss.cpu().tolist())
