@@ -13,6 +13,8 @@ import sys
 from dataclasses import dataclass
 from typing import Dict, Any, List
 import re
+import emoji
+import operator
 import time
 
 from sklearn.model_selection import train_test_split
@@ -75,6 +77,9 @@ fig.savefig("{}/plot_{}.png".format(ANALYSIS_OUTPUT_FOLDER, "preprocess"), bbox_
 
 
 # %% DEFINE NETWORK: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+"""
+Logistic Regression Bag-of-Words classifier
+"""
 class BOW_Module(nn.Module):
     def __init__(self, num_labels, vocab_size):
         super(BOW_Module, self).__init__()
@@ -101,7 +106,8 @@ class TwitterLikePredictor:
         OUTPUT_FOLDER        : str              = abspath("output")
         MODEL_TAG            : str              = "test-1"
         # tweet pre-processing: 
-        DELIMITER_SET        : str              = "; |, |、|。| \) | \( | \[ | \] | "
+        DELIMITER_SET        : str              = "; |, |、|。| "
+        SYMBOLE_REMOVE_LIST  : str              = None
         KEYS_TO_REMOVE_LIST  : List             = None
         # training set:
         SHUFFLE_TRAINING     : bool             = False
@@ -181,19 +187,55 @@ class TwitterLikePredictor:
         tweet_data = []
         for i in range(MAX_LENGTH):
             messages = pd_data['tweet'][i]
+            # remove some characters with space
+            for sym in config.SYMBOLE_REMOVE_LIST:
+                messages = re.sub(sym, " ", messages)
             # separate delimiter:
             messages = re.split(config.DELIMITER_SET, messages)
+            # split emojis
+            new_messages = []
+            for msg in messages:
+                new_messages.extend(emoji.get_emoji_regexp().split(msg))
+            messages = new_messages
             # remove keys:
             new_messages = []
             for msg in messages:
                 no_key = True
                 for key in config.KEYS_TO_REMOVE_LIST: # tags to be removed
                     if key in msg:
-                        no_key = False
+                        msg = key # no_key = False, lets replace key with key name => as feature
                 if no_key and len(msg) > 0:
                     # split:
                     new_messages.extend(jieba.lcut(msg, cut_all=True)) # split east asian
+            
+            # Let's convert time and other correlation into word as well!
+            time_str = pd_data["created_at"][i]
+            time_str = time_str.split(" ")
+            date_ = datetime.datetime.strptime(time_str[0], "%Y-%m-%d")
+            time_ = datetime.datetime.strptime(time_str[1], "%H:%M:%S")
+            descriptive_str = [
+                # time related:
+                "[year:{}]".format(date_.year),
+                "[month:{}]".format(date_.month),
+                "[hour:{}]".format(time_.hour),
+                "[zone:{}]".format(time_str[2])
+            ]
+            # existance of other placeholders
+            if (not pd.isna(pd_data["place"][i])):
+                descriptive_str.append("[exist:place]")
+            if (not pd.isna(pd_data["quote_url"][i])):
+                descriptive_str.append("[exist:quote_url]")
+            if (not pd.isna(pd_data["thumbnail"][i])):
+                descriptive_str.append("[exist:thumbnail]")
+            if (len(pd_data["reply_to"][i]) > 0):
+                descriptive_str.append("[exist:reply:to]")
+            # include hashtags: (should already be inside the tweet, but let's emphasize it by repeating)
+            descriptive_str.extend([item for item in pd_data['hashtags'][i]])
+            # extend messages
+            new_messages.extend(descriptive_str)
+            # append to normalized tweet data
             tweet_data.append(new_messages)
+
         pd_data['norm-tweet'] = tweet_data
         return pd_data
 
@@ -397,20 +439,28 @@ CONFIG = TwitterLikePredictor.PredictorConfiguration(
     USE_GPU               = True,
     PROCESSED_TWEET_TAG   = "norm-tweet",
     OUTPUT_FOLDER         = abspath("output"),
-    MODEL_TAG             = "test-epoch-1",
+    MODEL_TAG             = "test-epoch-10-v3",
     # tweet pre-processing:
-    DELIMITER_SET         = '; |, |、|。| \) | \( | \[ | \] | ',
+    DELIMITER_SET         = '; |, |、|。| ',
+    SYMBOLE_REMOVE_LIST   = [],#["\[", "\]", "\(", "\)", "#"],
     KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
     # training set:
     SHUFFLE_TRAINING      = False,
-    PERCENT_TRAINING_SET  = 0.9,
+    PERCENT_TRAINING_SET  = 0.90, # 0.99
     # bag of words (Tweeter Interpretation):
     LOSS_FUNC             = nn.NLLLoss(),
-    BOW_TOTAL_NUM_EPOCHS  = 1,
-    LEARNING_RATE         = 0.1,
-    # # Best Model so far:
+    BOW_TOTAL_NUM_EPOCHS  = 10, # 20
+    LEARNING_RATE         = 0.001,
+    # PERCENT_TRAINING_SET  = 0.9,
+    # # Best Model so far: test-epoch-1 (Incorporate time ... info.) => 0.462 acc --> 0.45604
+    # BOW_TOTAL_NUM_EPOCHS  = 10,
+    # LEARNING_RATE         = 0.001,
+    # # Best Model so far: test-epoch-1 => 0.4365 acc --> 0.44792
+    # BOW_TOTAL_NUM_EPOCHS  = 20,
+    # LEARNING_RATE         = 0.001,
+    # # Best Model so far: test-epoch-180
     # BOW_TOTAL_NUM_EPOCHS  = 180,
-    # LEARNING_RATE         = 0.01,
+    # LEARNING_RATE         = 0.001,
 )
 
 # ## INIT: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
@@ -455,9 +505,9 @@ validation_data["pred-ifcorrect"] = [False] * n
 validation_data["pred-probabilities"] = [[0,0,0,0]] * n
 loss_ = TLP_Engine.config.LOSS_FUNC
 with torch.no_grad(): # Not training!
-    i = 0
+    i = -1
     for instance, label in TLP_Engine.pytorch_data_test:
-        i = i
+        i += 1
         print(" > Predicting [{}/{}]".format(i+1, n),  end='\r')
         bow_vec = TLP_Engine.make_bow_vector(instance, TLP_Engine.word_to_ix)
         target = TLP_Engine.make_target(label, TLP_Engine.label_to_ix)
@@ -476,7 +526,7 @@ with torch.no_grad(): # Not training!
         validation_data.loc[id_, "pred-ifcorrect"] = ((y_pred == label))
         validation_data.loc[id_, "pred-probabilities"] = (loss.cpu().tolist())
 
-validation_data.to_csv(abspath("processed_data/valid-[{}]".format(TLP_Engine.config.MODEL_TAG)))
+validation_data.to_csv(abspath("processed_data/valid-[{}].csv".format(TLP_Engine.config.MODEL_TAG)))
 
 # %%  convert everything useful to quantity
 validation_data["time-year"] = [0] * n
@@ -502,12 +552,12 @@ for id_ in validation_data['id']:
     validation_data.loc[id_, "time-seconds"] = (time_ - datetime. datetime(1900, 1, 1)).total_seconds()
     validation_data.loc[id_, "time-zone"] = time_str[2]
     # other:
-    validation_data.loc[id_, "if-place"] = pd.isna(validation_data.loc[id_, "place"])
-    validation_data.loc[id_, "if-quote"] = pd.isna(validation_data.loc[id_, "quote_url"])
-    validation_data.loc[id_, "if-thumbnail"] = pd.isna(validation_data.loc[id_, "thumbnail"])
+    validation_data.loc[id_, "if-place"] = not pd.isna(validation_data.loc[id_, "place"])
+    validation_data.loc[id_, "if-quote"] = not pd.isna(validation_data.loc[id_, "quote_url"])
+    validation_data.loc[id_, "if-thumbnail"] = not pd.isna(validation_data.loc[id_, "thumbnail"])
     validation_data.loc[id_, "if-reply_to"] = len(validation_data.loc[id_,"reply_to"]) > 0
 
-validation_data.to_csv(abspath("processed_data/valid-converted-[{}]".format(TLP_Engine.config.MODEL_TAG)))
+validation_data.to_csv(abspath("processed_data/valid-converted-[{}].csv".format(TLP_Engine.config.MODEL_TAG)))
 
 # %%
 fig = plt.figure(figsize=(20,20))
@@ -542,14 +592,6 @@ fig, status = jx_lib.make_confusion_matrix(
     cf=cf,
     group_names=None,
     categories='auto',
-    count=True,
-    percent=True,
-    cbar=True,
-    xyticks=True,
-    xyplotlabels=True,
-    sum_stats=True,
-    figsize=None,
-    cmap='Blues',
     title="Prediction Summary"
 )
 fig.savefig("{}/plot_{}-conf_mat-[{}].png".format(ANALYSIS_OUTPUT_FOLDER, "post-process-summary", TLP_Engine.config.MODEL_TAG), bbox_inches = 'tight')
