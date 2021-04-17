@@ -76,8 +76,8 @@ ax.set_title("Video Count")
 sns.histplot(ax=ax, data=TRAIN_DATA, x="video", hue="likes_count", multiple="dodge")
 fig.savefig("{}/plot_{}.png".format(ANALYSIS_OUTPUT_FOLDER, "preprocess"), bbox_inches = 'tight')
 
-
-# %% DEFINE NETWORK: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+# %% -------------------------------- SECTION BREAK LINE -------------------------------- %% #
+# # DEFINE NETWORK: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
 """
 Logistic Regression Bag-of-Words classifier
 """
@@ -103,6 +103,42 @@ class BOW_ModuleV2(nn.Module):
     def forward(self, bow_vec):
         # input => Linear => softmax
         y = self.linear1(bow_vec)
+        # y = self.dropout(y)
+        y = self.linear2(y)
+        outputs =  F.log_softmax(y, dim=1)
+        return outputs
+
+class BOW_ModuleV3(nn.Module):
+    def __init__(self, num_labels, vocab_size, 
+        dropout=0.2, d_hidden=100, n_layers=2,
+    ):
+        super(BOW_ModuleV3, self).__init__()
+        self.linear1 = nn.Linear(vocab_size, d_hidden)
+        self.linear2 = nn.Linear(d_hidden, num_labels)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, bow_vec):
+        # input => Linear => softmax
+        y = self.linear1(bow_vec)
+        y = self.dropout(y)
+        y = self.linear2(y)
+        outputs =  F.log_softmax(y, dim=1)
+        return outputs
+
+class BOW_ModuleV4(nn.Module):
+    def __init__(self, num_labels, vocab_size, 
+        dropout=0.2, d_hidden=100, n_layers=2,
+    ):
+        super(BOW_ModuleV4, self).__init__()
+        self.linear1 = nn.Linear(vocab_size, d_hidden)
+        self.linear2 = nn.Linear(d_hidden, num_labels)
+        self.pool = nn.MaxPool1d(4, stride=1, padding=0)
+        # self.dropout = nn.Dropout(dropout)
+
+    def forward(self, bow_vec):
+        # input => Linear => softmax
+        y = self.linear1(bow_vec)
+        y = self.pool(y)
         # y = self.dropout(y)
         y = self.linear2(y)
         outputs =  F.log_softmax(y, dim=1)
@@ -148,6 +184,7 @@ class TwitterLikePredictor:
         self, 
         pd_data_training,
         verbose,
+        verbose_show_sample_language_parse,
         config: PredictorConfiguration
     ):
         self.config = config
@@ -168,9 +205,10 @@ class TwitterLikePredictor:
             self.training_dataset.to_csv(path)
         # sample:
         UNIQ_LANG =  self.training_dataset["language"].unique().tolist()
-        for lang in UNIQ_LANG:
-            index =  self.training_dataset.index[ self.training_dataset["language"] == lang].tolist()[0]
-            self._print("{} > {}".format(lang,  self.training_dataset["norm-tweet"][index]))
+        if verbose_show_sample_language_parse:
+            for lang in UNIQ_LANG:
+                index =  self.training_dataset.index[ self.training_dataset["language"] == lang].tolist()[0]
+                self._print("{} > {}".format(lang,  self.training_dataset["norm-tweet"][index]))
         labels = self.training_dataset[self.config.Y_TAG].unique()
         self.label_to_ix = {i:i for i in labels}
         self.NUM_LABELS = len(labels)
@@ -201,7 +239,7 @@ class TwitterLikePredictor:
         # sample top bag of words
         self.word_count_top_100 = sorted(self.word_count.items(), key=lambda x:-np.sum(x[1]))[:100]
         # print model parameters
-        if self.version in ["v2"]:
+        if self.version in ["v2", "v3", "v4"]:
             self._print("MODEL: {}".format(self.model))
         else:
             for param in self.model.parameters():
@@ -279,6 +317,10 @@ class TwitterLikePredictor:
             #     nn.Softmax(dim=1)
             # )
             self.model = BOW_ModuleV2(self.NUM_LABELS, self.VOCAB_SIZE, d_hidden=self.config.D_HIDDEN)
+        elif version == "v3":
+            self.model = BOW_ModuleV3(self.NUM_LABELS, self.VOCAB_SIZE, d_hidden=self.config.D_HIDDEN)
+        elif version == "v4":
+            self.model = BOW_ModuleV4(self.NUM_LABELS, self.VOCAB_SIZE, d_hidden=self.config.D_HIDDEN)
         else:
             self.model = BOW_Module(self.NUM_LABELS, self.VOCAB_SIZE)
 
@@ -444,8 +486,8 @@ class TwitterLikePredictor:
                 pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag=tag)
                 self.save_model(tag=tag)
             
-            if (n_accuracy_drops >= 3):
-                self._print("> Early Stopping due to accuracy drops in last 3 iterations!")
+            if (n_accuracy_drops >= 2):
+                self._print("> Early Stopping due to accuracy drops in last 2 iterations!")
                 break
 
         self._print("End of Program")
@@ -543,84 +585,42 @@ class TwitterLikePredictor:
 # # PREDICTION: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
 # pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag="test")
 
-# %% Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
+
+# %% -------------------------------- SECTION BREAK LINE -------------------------------- %% #
+"""
+We will try to train possible models and choose the best model
+"""
+# # Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
 DICT_OF_CONFIG = {
     "trial-1": TwitterLikePredictor.PredictorConfiguration(
-        # Y_TAG                 = "likes_count",
-        # USE_GPU               = True,
-        # PROCESSED_TWEET_TAG   = "norm-tweet",
-        # OUTPUT_FOLDER         = abspath("output"),
         MODEL_TAG             = "trail-1",
-        # tweet pre-processing:
-        # DELIMITER_SET         = '; |, |、|。| ',
-        # SYMBOLE_REMOVE_LIST   = ["\[", "\]", "\(", "\)"],
-        # KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
-        # training set:
-        # SHUFFLE_TRAINING      = False,
-        # PERCENT_TRAINING_SET  = 0.90, # 0.99
-        # bag of words (Tweeter Interpretation):
-        # LOSS_FUNC             = nn.NLLLoss(),
-        # BOW_TOTAL_NUM_EPOCHS  = 10, # 20
-        # LEARNING_RATE         = 0.001,
-        # FORCE_REBUILD         = True, # False seems to be slower, I guess caches might be better
-        # OPTIMIZER             = optim.SGD,
-        D_HIDDEN              = 100,
-        MOMENTUM              = 0.8,
-        MODEL_VERSION         = "v2"
-    ),
-    "trial-2": TwitterLikePredictor.PredictorConfiguration(
-        # Y_TAG                 = "likes_count",
-        # USE_GPU               = True,
-        # PROCESSED_TWEET_TAG   = "norm-tweet",
-        # OUTPUT_FOLDER         = abspath("output"),
-        MODEL_TAG             = "trail-2",
-        # tweet pre-processing:
-        # DELIMITER_SET         = '; |, |、|。| ',
-        # SYMBOLE_REMOVE_LIST   = ["\[", "\]", "\(", "\)"],
-        # KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
-        # training set:
-        # SHUFFLE_TRAINING      = False,
-        # PERCENT_TRAINING_SET  = 0.90, # 0.99
-        # bag of words (Tweeter Interpretation):
-        # LOSS_FUNC             = nn.NLLLoss(),
-        BOW_TOTAL_NUM_EPOCHS  = 20, # 20
-        # LEARNING_RATE         = 0.001,
-        # FORCE_REBUILD         = True, # False seems to be slower, I guess caches might be better
-        # OPTIMIZER             = optim.SGD,
-        D_HIDDEN              = 400,
-        MOMENTUM              = 0.8,
-        MODEL_VERSION         = "v2"
-    ),
-    "trial-3": TwitterLikePredictor.PredictorConfiguration(
-        # Y_TAG                 = "likes_count",
-        # USE_GPU               = True,
-        # PROCESSED_TWEET_TAG   = "norm-tweet",
-        # OUTPUT_FOLDER         = abspath("output"),
-        MODEL_TAG             = "trail-3",
-        # tweet pre-processing:
-        # DELIMITER_SET         = '; |, |、|。| ',
-        # SYMBOLE_REMOVE_LIST   = ["\[", "\]", "\(", "\)"],
-        # KEYS_TO_REMOVE_LIST   = ["http", "arXiv", "https"],
-        # training set:
-        # SHUFFLE_TRAINING      = False,
-        # PERCENT_TRAINING_SET  = 0.90, # 0.99
-        # bag of words (Tweeter Interpretation):
-        # LOSS_FUNC             = nn.NLLLoss(),
-        BOW_TOTAL_NUM_EPOCHS  = 100, # 20
         LEARNING_RATE         = 0.0001,
-        # FORCE_REBUILD         = True, # False seems to be slower, I guess caches might be better
-        # OPTIMIZER             = optim.SGD,
-        D_HIDDEN              = 400,
-        MOMENTUM              = 0.8,
-        MODEL_VERSION         = "v2"
-    ),
+        MODEL_VERSION         = "v"
+    ), #= Comment: <0.47 (less than the best)
+    # "trial-2": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "trail-2",
+    #     BOW_TOTAL_NUM_EPOCHS  = 20, # 20
+    #     D_HIDDEN              = 400,
+    #     MOMENTUM              = 0.8,
+    #     MODEL_VERSION         = "v2"
+    # ),
+    # "trial-2.1": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "trail-2.1",
+    #     BOW_TOTAL_NUM_EPOCHS  = 50, # 20
+    #     D_HIDDEN              = 1200,
+    #     LEARNING_RATE         = 0.0001,
+    #     MODEL_VERSION         = "v2"
+    # ), # => [slightly better]: 0.4696 => 0.46225 on Kaggle with epoch=6
 }
 
-min_threshold = 0.47
+min_threshold = 0.465
 for name_, config_ in DICT_OF_CONFIG.items():
     print("================================ ================================ BEGIN:{} , Goal:{} =>".format(name_, min_threshold))
     # INIT ENGINE: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
-    TLP_Engine = TwitterLikePredictor(pd_data_training=TRAIN_DATA, verbose=True, config=config_)
+    TLP_Engine = TwitterLikePredictor(
+        pd_data_training=TRAIN_DATA, verbose=True, 
+        verbose_show_sample_language_parse=False, config=config_
+    )
 
     # TRAIN: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     report = TLP_Engine.train(gen_plot=True, sample_threshold=min_threshold)
@@ -633,136 +633,141 @@ for name_, config_ in DICT_OF_CONFIG.items():
     pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag=name_)
 
 
-# %% Word Analysis: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
-list_top100 = list(map(np.array, zip(* TLP_Engine.word_count_top_100)))
-# Plot Language and video Count:
-fig = plt.figure(figsize=(40,40))
-ax = plt.subplot(1, 1, 1)
-ax.set_title("Top 100 Repeated Word Count")
-plt.bar(list_top100[0], list_top100[1][:, 0], label="0")
-plt.bar(list_top100[0], list_top100[1][:, 1], label="1")
-plt.bar(list_top100[0], list_top100[1][:, 2], label="2")
-plt.bar(list_top100[0], list_top100[1][:, 3], label="3")
 
-# %% POST-ANALYSIS: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+
+
+# %% -------------------------------- SECTION BREAK LINE -------------------------------- %% #
 """
 We will do post-analysis here, to see the validation performance of the model.
 """
-N_TRAIN = int(len(TLP_Engine.training_dataset) * TLP_Engine.config.PERCENT_TRAINING_SET)
-N_TEST = len(TLP_Engine.training_dataset) - N_TRAIN
-validation_data = pd.DataFrame(data=TLP_Engine.training_dataset, index=range(N_TRAIN,(N_TRAIN+N_TEST)))
-# # %% HACK:
-# dict_tweet_to_id = {}
-# for id_, tweet in zip(validation_data['id'], validation_data['norm-tweet']):
-#     dict_tweet_to_id[''.join(tweet)] = id_
-#%% Lets try redo the test, and analyze it
-n = len(TLP_Engine.pytorch_data_eval)
-validation_data["pred-likes"] = [0] * n
-validation_data["pred-ifcorrect"] = [False] * n
-validation_data["pred-probabilities"] = [[0,0,0,0]] * n
-loss_ = TLP_Engine.config.LOSS_FUNC
-with torch.no_grad(): # Not training!
-    i = -1
-    for instance, label in TLP_Engine.pytorch_data_eval:
-        i += 1
-        print("\r > Predicting [{}/{}]".format(i+1, n),  end='')
-        bow_vec = TLP_Engine.make_bow_vector(instance)
-        target = TLP_Engine.make_target(label)
-        if TLP_Engine.config.USE_GPU:
-            bow_vec = bow_vec.to(TLP_Engine.device)
-            target = target.to(TLP_Engine.device)
-        log_probs = TLP_Engine.model(bow_vec)
-        y_pred = log_probs.argmax(dim=1).tolist()[0]
-        # Log summay:
-        loss = loss_(log_probs, target)
 
-        # find index and store:
-        # id_ = dict_tweet_to_id[''.join(instance)]
-        id_ = TLP_Engine.pytorch_data_eval_id[i]
-        validation_data.loc[id_, "pred-likes"] = (y_pred)
-        validation_data.loc[id_, "pred-ifcorrect"] = ((y_pred == label))
-        validation_data.loc[id_, "pred-probabilities"] = (loss.cpu().tolist())
+# # # Word Analysis: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+# list_top100 = list(map(np.array, zip(* TLP_Engine.word_count_top_100)))
+# # Plot Language and video Count:
+# fig = plt.figure(figsize=(40,40))
+# ax = plt.subplot(1, 1, 1)
+# ax.set_title("Top 100 Repeated Word Count")
+# plt.bar(list_top100[0], list_top100[1][:, 0], label="0")
+# plt.bar(list_top100[0], list_top100[1][:, 1], label="1")
+# plt.bar(list_top100[0], list_top100[1][:, 2], label="2")
+# plt.bar(list_top100[0], list_top100[1][:, 3], label="3")
 
-validation_data.to_csv(abspath("processed_data/valid-[{}].csv".format(TLP_Engine.config.MODEL_TAG)))
+# # %% POST-ANALYSIS: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
+# N_TRAIN = int(len(TLP_Engine.training_dataset) * TLP_Engine.config.PERCENT_TRAINING_SET)
+# N_TEST = len(TLP_Engine.training_dataset) - N_TRAIN
+# validation_data = pd.DataFrame(data=TLP_Engine.training_dataset, index=range(N_TRAIN,(N_TRAIN+N_TEST)))
+# # # %% HACK:
+# # dict_tweet_to_id = {}
+# # for id_, tweet in zip(validation_data['id'], validation_data['norm-tweet']):
+# #     dict_tweet_to_id[''.join(tweet)] = id_
+# #%% Lets try redo the test, and analyze it
+# n = len(TLP_Engine.pytorch_data_eval)
+# validation_data["pred-likes"] = [0] * n
+# validation_data["pred-ifcorrect"] = [False] * n
+# validation_data["pred-probabilities"] = [[0,0,0,0]] * n
+# loss_ = TLP_Engine.config.LOSS_FUNC
+# with torch.no_grad(): # Not training!
+#     i = -1
+#     for instance, label in TLP_Engine.pytorch_data_eval:
+#         i += 1
+#         print("\r > Predicting [{}/{}]".format(i+1, n),  end='')
+#         bow_vec = TLP_Engine.make_bow_vector(instance)
+#         target = TLP_Engine.make_target(label)
+#         if TLP_Engine.config.USE_GPU:
+#             bow_vec = bow_vec.to(TLP_Engine.device)
+#             target = target.to(TLP_Engine.device)
+#         log_probs = TLP_Engine.model(bow_vec)
+#         y_pred = log_probs.argmax(dim=1).tolist()[0]
+#         # Log summay:
+#         loss = loss_(log_probs, target)
 
-# %%  convert everything useful to quantity
-validation_data["time-year"] = [0] * n
-validation_data["time-month"] = [0] * n
-validation_data["time-date"] = "" * n
-validation_data["time-seconds"] = [0] * n
-validation_data["time-zone"] = "" * n
+#         # find index and store:
+#         # id_ = dict_tweet_to_id[''.join(instance)]
+#         id_ = TLP_Engine.pytorch_data_eval_id[i]
+#         validation_data.loc[id_, "pred-likes"] = (y_pred)
+#         validation_data.loc[id_, "pred-ifcorrect"] = ((y_pred == label))
+#         validation_data.loc[id_, "pred-probabilities"] = (loss.cpu().tolist())
 
-validation_data["if-place"] = [False] * n
-validation_data["if-quote"] = [False] * n
-validation_data["if-thumbnail"] = [False] * n
-validation_data["if-reply_to"] = [False] * n
-for id_ in validation_data['id']:
-    # convert creation time: => time affects how many ppl viewed the post
-    time_str = validation_data.loc[id_, "created_at"]
-    time_str = time_str.split(" ")
-    date_ = datetime.datetime.strptime(time_str[0], "%Y-%m-%d")
-    time_ = datetime.datetime.strptime(time_str[1], "%H:%M:%S")
+# validation_data.to_csv(abspath("processed_data/valid-[{}].csv".format(TLP_Engine.config.MODEL_TAG)))
 
-    validation_data.loc[id_, "time-year"] = date_.year
-    validation_data.loc[id_, "time-month"] = date_.month
-    validation_data.loc[id_, "time-date"] = time_str[0]
-    validation_data.loc[id_, "time-seconds"] = (time_ - datetime. datetime(1900, 1, 1)).total_seconds()
-    validation_data.loc[id_, "time-zone"] = time_str[2]
-    # other:
-    validation_data.loc[id_, "if-place"] = not pd.isna(validation_data.loc[id_, "place"])
-    validation_data.loc[id_, "if-quote"] = not pd.isna(validation_data.loc[id_, "quote_url"])
-    validation_data.loc[id_, "if-thumbnail"] = not pd.isna(validation_data.loc[id_, "thumbnail"])
-    validation_data.loc[id_, "if-reply_to"] = len(validation_data.loc[id_,"reply_to"]) > 0
+# # %%  convert everything useful to quantity
+# validation_data["time-year"] = [0] * n
+# validation_data["time-month"] = [0] * n
+# validation_data["time-date"] = "" * n
+# validation_data["time-seconds"] = [0] * n
+# validation_data["time-zone"] = "" * n
 
-validation_data.to_csv(abspath("processed_data/valid-converted-[{}].csv".format(TLP_Engine.config.MODEL_TAG)))
+# validation_data["if-place"] = [False] * n
+# validation_data["if-quote"] = [False] * n
+# validation_data["if-thumbnail"] = [False] * n
+# validation_data["if-reply_to"] = [False] * n
+# for id_ in validation_data['id']:
+#     # convert creation time: => time affects how many ppl viewed the post
+#     time_str = validation_data.loc[id_, "created_at"]
+#     time_str = time_str.split(" ")
+#     date_ = datetime.datetime.strptime(time_str[0], "%Y-%m-%d")
+#     time_ = datetime.datetime.strptime(time_str[1], "%H:%M:%S")
 
-# %%
-fig = plt.figure(figsize=(20,20))
+#     validation_data.loc[id_, "time-year"] = date_.year
+#     validation_data.loc[id_, "time-month"] = date_.month
+#     validation_data.loc[id_, "time-date"] = time_str[0]
+#     validation_data.loc[id_, "time-seconds"] = (time_ - datetime. datetime(1900, 1, 1)).total_seconds()
+#     validation_data.loc[id_, "time-zone"] = time_str[2]
+#     # other:
+#     validation_data.loc[id_, "if-place"] = not pd.isna(validation_data.loc[id_, "place"])
+#     validation_data.loc[id_, "if-quote"] = not pd.isna(validation_data.loc[id_, "quote_url"])
+#     validation_data.loc[id_, "if-thumbnail"] = not pd.isna(validation_data.loc[id_, "thumbnail"])
+#     validation_data.loc[id_, "if-reply_to"] = len(validation_data.loc[id_,"reply_to"]) > 0
 
-DICT_SUBPLOTS = {
-    "Prediction Result (likes_count)": {'x': "likes_count", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "Video vs. Correctness": {'x': "video", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "Time(s) vs. Correctness": {'x': "time-seconds", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "Time(zone) vs. Correctness": {'x': "time-zone", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "Time(year) vs. Correctness": {'x': "time-year", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "Time(month) vs. Correctness": {'x': "time-month", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "if-place vs. Correctness": {'x': "if-place", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "if-quote vs. Correctness": {'x': "if-quote", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "if-thumbnail vs. Correctness": {'x': "if-thumbnail", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-    "if-reply_to vs. Correctness": {'x': "if-reply_to", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
-}
-n_plot = np.ceil(np.sqrt(len(DICT_SUBPLOTS)))
-i = 0
-for title, entry in DICT_SUBPLOTS.items():
-    i += 1
-    ax = plt.subplot(n_plot, n_plot, i)
-    ax.set_title(title)
-    sns.histplot(ax=ax, data=validation_data, x=entry["x"], y=entry["y"], hue=entry["hue"], multiple=entry["mult"])
+# validation_data.to_csv(abspath("processed_data/valid-converted-[{}].csv".format(TLP_Engine.config.MODEL_TAG)))
 
-fig.savefig("{}/plot_{}-[{}].png".format(ANALYSIS_OUTPUT_FOLDER, "post-process-summary", TLP_Engine.config.MODEL_TAG), bbox_inches = 'tight')
+# # %%
+# fig = plt.figure(figsize=(20,20))
+
+# DICT_SUBPLOTS = {
+#     "Prediction Result (likes_count)": {'x': "likes_count", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "Video vs. Correctness": {'x': "video", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "Time(s) vs. Correctness": {'x': "time-seconds", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "Time(zone) vs. Correctness": {'x': "time-zone", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "Time(year) vs. Correctness": {'x': "time-year", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "Time(month) vs. Correctness": {'x': "time-month", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "if-place vs. Correctness": {'x': "if-place", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "if-quote vs. Correctness": {'x': "if-quote", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "if-thumbnail vs. Correctness": {'x': "if-thumbnail", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+#     "if-reply_to vs. Correctness": {'x': "if-reply_to", 'y':None, 'hue': "pred-ifcorrect", 'mult':"dodge"},
+# }
+# n_plot = np.ceil(np.sqrt(len(DICT_SUBPLOTS)))
+# i = 0
+# for title, entry in DICT_SUBPLOTS.items():
+#     i += 1
+#     ax = plt.subplot(n_plot, n_plot, i)
+#     ax.set_title(title)
+#     sns.histplot(ax=ax, data=validation_data, x=entry["x"], y=entry["y"], hue=entry["hue"], multiple=entry["mult"])
+
+# fig.savefig("{}/plot_{}-[{}].png".format(ANALYSIS_OUTPUT_FOLDER, "post-process-summary", TLP_Engine.config.MODEL_TAG), bbox_inches = 'tight')
 
 
-# %% Confusion Matrix:
-cf = confusion_matrix(validation_data["likes_count"], validation_data["pred-likes"])
+# # %% Confusion Matrix:
+# cf = confusion_matrix(validation_data["likes_count"], validation_data["pred-likes"])
 
-fig, status = jx_lib.make_confusion_matrix(
-    cf=cf,
-    group_names=None,
-    categories='auto',
-    title="Prediction Summary"
-)
-fig.savefig("{}/plot_{}-conf_mat-[{}].png".format(ANALYSIS_OUTPUT_FOLDER, "post-process-summary", TLP_Engine.config.MODEL_TAG), bbox_inches = 'tight')
+# fig, status = jx_lib.make_confusion_matrix(
+#     cf=cf,
+#     group_names=None,
+#     categories='auto',
+#     title="Prediction Summary"
+# )
+# fig.savefig("{}/plot_{}-conf_mat-[{}].png".format(ANALYSIS_OUTPUT_FOLDER, "post-process-summary", TLP_Engine.config.MODEL_TAG), bbox_inches = 'tight')
 
-# %% Entry Correlation Plot
-partial_validation_data = pd.DataFrame(data=validation_data, columns =["time-year", "time-month", "if-thumbnail", "likes_count", "pred-likes"])
-corr = partial_validation_data.corr()
-fig = plt.figure(figsize=(10,10))
-ax = sns.heatmap(
-    corr, 
-    vmin=-1, vmax=1, center=0,
-    cmap=sns.diverging_palette(20, 220, n=200),
-    square=True
-)
-fig.savefig("{}/plot_{}-correlation-[{}].png".format(ANALYSIS_OUTPUT_FOLDER, "post-process-summary", TLP_Engine.config.MODEL_TAG), bbox_inches = 'tight')
+# # %% Entry Correlation Plot
+# partial_validation_data = pd.DataFrame(data=validation_data, columns =["time-year", "time-month", "if-thumbnail", "likes_count", "pred-likes"])
+# corr = partial_validation_data.corr()
+# fig = plt.figure(figsize=(10,10))
+# ax = sns.heatmap(
+#     corr, 
+#     vmin=-1, vmax=1, center=0,
+#     cmap=sns.diverging_palette(20, 220, n=200),
+#     square=True
+# )
+# fig.savefig("{}/plot_{}-correlation-[{}].png".format(ANALYSIS_OUTPUT_FOLDER, "post-process-summary", TLP_Engine.config.MODEL_TAG), bbox_inches = 'tight')
 
 # %%
