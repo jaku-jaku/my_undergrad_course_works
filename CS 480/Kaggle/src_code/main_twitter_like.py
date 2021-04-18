@@ -13,7 +13,7 @@ import sys
 import json
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import re
 import emoji
 import operator
@@ -82,7 +82,12 @@ ic(TRAIN_DATA.shape)
 # %% -------------------------------- CUSTOM NETWORK LIBRARY -------------------------------- %% #
 # # DEFINE NETWORK: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
 """
-Logistic Regression Bag-of-Words classifier
+Logistic Regression Bag-of-Words classifier:
+
+- Have tried custom deeper network => takes too long to train and not very effective
+- The best is still one layer FN, aka logistic regression
+- The best we may achiever: {see crowdmark}
+- we will split training set into 90\% training and 10\% validation
 """
 class BOW_Module(nn.Module):
     def __init__(self, num_labels, vocab_size):
@@ -100,6 +105,7 @@ class BOW_ModuleV2(nn.Module):
     ):
         super(BOW_ModuleV2, self).__init__()
         self.linear1 = nn.Linear(vocab_size, d_hidden)
+        self.relu = nn.ReLU()
         self.linear2 = nn.Linear(d_hidden, num_labels)
         # self.dropout = nn.Dropout(dropout)
 
@@ -107,43 +113,50 @@ class BOW_ModuleV2(nn.Module):
         # input => Linear => softmax
         y = self.linear1(bow_vec)
         # y = self.dropout(y)
+        y =self.relu(y)
+        y = self.linear2(y)
+        outputs =  F.log_softmax(y, dim=1)
+        return outputs
+
+class BOW_ModuleV2Drop(nn.Module):
+    def __init__(self, num_labels, vocab_size, 
+        dropout=0.2, d_hidden=100, n_layers=2,
+    ):
+        super(BOW_ModuleV2Drop, self).__init__()
+        K_size = 10
+        N_stride = 5
+        self.linear1 = nn.Linear(vocab_size, d_hidden)
+        self.relu = nn.ReLU()
+        self.drop = nn.Dropout(dropout)
+        self.linear2 = nn.Linear(d_hidden, num_labels)
+        # self.dropout = nn.Dropout(dropout)
+
+    def forward(self, bow_vec):
+        # input => Linear => softmax
+        y = self.linear1(bow_vec)
+        y = self.relu(y)
+        y = self.drop(y)
         y = self.linear2(y)
         outputs =  F.log_softmax(y, dim=1)
         return outputs
 
 class BOW_ModuleV3(nn.Module):
     def __init__(self, num_labels, vocab_size, 
-        dropout=0.2, d_hidden=100, n_layers=2,
+        dropout=0.2, d_hidden=1000, n_layers=2,
     ):
         super(BOW_ModuleV3, self).__init__()
         self.linear1 = nn.Linear(vocab_size, d_hidden)
-        self.linear2 = nn.Linear(d_hidden, num_labels)
-        self.dropout = nn.Dropout(dropout)
+        self.linear2 = nn.Linear(d_hidden, 100)
+        self.linear3 = nn.Linear(100, num_labels)
+        self.relu = nn.ReLU()
 
     def forward(self, bow_vec):
         # input => Linear => softmax
         y = self.linear1(bow_vec)
-        y = self.dropout(y)
+        y = self.relu(y)
         y = self.linear2(y)
-        outputs =  F.log_softmax(y, dim=1)
-        return outputs
-
-class BOW_ModuleV4(nn.Module):
-    def __init__(self, num_labels, vocab_size, 
-        dropout=0.2, d_hidden=100, n_layers=2,
-    ):
-        super(BOW_ModuleV4, self).__init__()
-        self.linear1 = nn.Linear(vocab_size, d_hidden)
-        self.linear2 = nn.Linear(d_hidden, num_labels)
-        self.pool = nn.MaxPool1d(4, stride=1, padding=0)
-        # self.dropout = nn.Dropout(dropout)
-
-    def forward(self, bow_vec):
-        # input => Linear => softmax
-        y = self.linear1(bow_vec)
-        y = self.pool(y)
-        # y = self.dropout(y)
-        y = self.linear2(y)
+        y = self.relu(y)
+        y = self.linear3(y)
         outputs =  F.log_softmax(y, dim=1)
         return outputs
 
@@ -165,6 +178,7 @@ class TwitterLikePredictor:
         DELIMITER_SET        : str              = "; |, |、|。| "
         SYMBOLE_REMOVE_LIST  : str              = field(default_factory=lambda: ["\[", "\]", "\(", "\)"])
         KEYS_TO_REMOVE_LIST  : List             = field(default_factory=lambda: ["http", "arXiv", "https"])
+        ENABLE_EXTRA_CONVERSION  : List         = field(default_factory=lambda: [])
         # training set:
         SHUFFLE_TRAINING     : bool             = False
         PERCENT_TRAINING_SET : float            = 0.9
@@ -177,6 +191,9 @@ class TwitterLikePredictor:
         MOMENTUM             : float            = 0.9
         MODEL_VERSION        : str              = "v2"
         D_HIDDEN             : int              = 100
+        N_TOP_FEATURES       : Optional[int]    = None
+        N_MIN_VARIANCE       : Optional[int]    = None
+        N_EARLY_STOPPING_NDROPS : Optional[int] = 3
 
     def _print(self, content):
         if self.verbose:
@@ -189,6 +206,7 @@ class TwitterLikePredictor:
     def __init__(
         self, 
         pd_data_training,
+        pd_data_testing,
         engine_name,
         verbose,
         verbose_show_sample_language_parse,
@@ -213,16 +231,22 @@ class TwitterLikePredictor:
                 abs_path = abspath("{}/{}/{}".format("output", engine_name, name_))
             jx_lib.create_folder(abs_path)
             self.folder_dict[name_] = abs_path
+        # print config:
+        self._print(str(self.config))
         # Prepare Hardware ==== ==== ==== ==== ==== ==== ==== #
         self._print("Prepare Hardware")
         if self.config.USE_GPU:
             self.device = self.load_device()
         # Pre-processing Dataset ==== ==== ==== ==== ==== ==== ==== #
+        self._print("Pre-processing Dataset ...")
+        path_test_lite = os.path.join(self.folder_dict["processed_data"], 'preprocessed-lite-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
+        path_test_preprocessed = os.path.join(self.folder_dict["processed_data"], 'preprocessed-idx-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
         path_lite = os.path.join(self.folder_dict["processed_data"], 'preprocessed-lite-train-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
         path_preprocessed = os.path.join(self.folder_dict["processed_data"], 'preprocessed-idx-train-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
         path_dict = os.path.join(self.folder_dict["processed_data"], 'bow-dict-[{}].json'.format(self.config.PRE_PROCESS_TAG))
+        self.if_read_from_file = False
         if os.path.exists(path_preprocessed) and not self.config.FORCE_REBUILD:
-            # TODO: file size to large
+            # load training:
             self.training_dataset = pd.read_csv(path_preprocessed)
             self._print("Loading Pre-Processed Dataset From {} [size:{}]".format(path_preprocessed, self.training_dataset.shape))
             self.pytorch_data_train_id, self.pytorch_data_eval_id,\
@@ -232,20 +256,30 @@ class TwitterLikePredictor:
                 config = self.config,
                 if_literal_eval = True
             )
+            # load test:
+            self._print("Loading Pre-Processed Test Dataset From {}".format(path_test_preprocessed))
+            self.final_testing_dataset = pd.read_csv(path_test_preprocessed)
+            self.if_read_from_file = True
+            # load json wov dictionary
+            self._print("Loading Pre-Processed Word To Vector IX From {}".format(path_dict))
             with open(path_dict, "r") as f:
                 self.word_to_ix = json.load(f)
             # gen const:
             labels = self.training_dataset[self.config.Y_TAG].unique()
             self.VOCAB_SIZE = len(self.word_to_ix)
             self.NUM_LABELS = len(labels)
-            pass
         else:
             # Pre-processing Sentences ==== ==== ==== ==== ==== ==== ==== #
             # break sentebce to bag of words:
-            self._print("Pre-processing Dataset ...")
+            # training data:
+            self._print("No previous cache found, Let's Pre-process Dataset ...")
             self.training_dataset = self.generate_tweet_message_normalized_column(pd_data=pd_data_training, config=self.config)
             self.training_dataset.to_csv(path_lite)
-            self._print("Pre-processed Dataset Again (Lite) Saved @ {}".format(path_lite))
+            self._print("Pre-processed Training Dataset (Lite) Saved @ {}".format(path_lite))
+            # testing data:
+            self.final_testing_dataset = self.generate_tweet_message_normalized_column(pd_data=pd_data_testing, config=self.config)
+            self.final_testing_dataset.to_csv(path_test_lite)
+            self._print("Pre-Processed Test Dataset (Lite) Saved @ {}".format(path_test_lite))
             # sample:
             UNIQ_LANG =  self.training_dataset["language"].unique().tolist()
             if verbose_show_sample_language_parse:
@@ -263,8 +297,17 @@ class TwitterLikePredictor:
                     pd_data = self.training_dataset,
                     config = self.config
                 )
+            self.final_testing_dataset["likes_count"] = [0] * len(self.final_testing_dataset) # MOCK / UNUSED
+            _, _, data1, data2 = self.split_training_dataset(
+                    x_tag = "norm-tweet",
+                    pd_data = self.final_testing_dataset,
+                    config = self.config
+                )
+            # Generate Bag of Words ==== ==== ==== ==== ==== ==== ==== #
             self._generate_bow_dictionary(
-                data = pytorch_data_train,
+                data = pytorch_data_train + pytorch_data_eval, #+ data1 + data2, # based on all possible data
+                n_top_features = self.config.N_TOP_FEATURES,
+                n_min_variance = self.config.N_MIN_VARIANCE,
             )
             f = open(path_dict, "w")
             json.dump(self.word_to_ix, f)
@@ -272,9 +315,15 @@ class TwitterLikePredictor:
 
             # Pre-process Dataset (Word => vector) ==== ==== ==== ==== ==== #
             self._print("Prepare Training Dataset Pre-Vectorization")
+            # training:
             self.training_dataset = self.generate_tweet_message_normalized_column_converted(pd_data=self.training_dataset)
             self.training_dataset.to_csv(path_preprocessed)
             self._print("Pre-processed Dataset Again (idx) Saved @ {}".format(path_preprocessed))
+            # final testing:
+            self.final_testing_dataset = self.generate_tweet_message_normalized_column_converted(pd_data = self.final_testing_dataset)
+            self.final_testing_dataset.to_csv(path_test_preprocessed)
+            self._print("Pre-Processed Final Test Dataset Again (idx) Saved @ {}".format(path_test_preprocessed))
+            # split training dataset again for precompiled dataset:
             self.pytorch_data_train_id, self.pytorch_data_eval_id,\
                 self.pytorch_data_train_preprocessed, self.pytorch_data_eval_preprocessed = self.split_training_dataset(
                 x_tag = "norm-tweet-bow-idx-array",
@@ -283,7 +332,11 @@ class TwitterLikePredictor:
                 train_id = self.pytorch_data_train_id, 
                 eval_id = self.pytorch_data_eval_id
             )
-
+        # give a brief summary of number of training sets
+        self._print("N_train:{}  N_validation:{}".format(
+            len(self.pytorch_data_train_preprocessed), 
+            len(self.pytorch_data_eval_preprocessed)
+        ))
         # Init Model ==== ==== ==== ==== ==== ==== ==== ==== #
         self._print("New Model Created")
         self.create_new_model(version=self.config.MODEL_VERSION)
@@ -293,8 +346,6 @@ class TwitterLikePredictor:
         self._print("REPORT SUMMARY ======================= ")
         ic(self.VOCAB_SIZE)
         ic(self.NUM_LABELS)
-        # sample top bag of words
-        self.word_count_top_100 = sorted(self.word_count.items(), key=lambda x:-np.sum(x[1]))[:100]
         # print model parameters
         self._print("MODEL: {}".format(self.model))
         t_init = time.time() - t_init
@@ -309,7 +360,9 @@ class TwitterLikePredictor:
         tweet_data = []
         for i in range(MAX_LENGTH):
             # include name and tweet for token analysis
-            messages = pd_data['tweet'][i] + str(pd_data['name'][i])
+            messages = str(pd_data['name'][i]) 
+            if "no-tweet" not in config.ENABLE_EXTRA_CONVERSION:
+                messages = " " + pd_data['tweet'][i]
             # remove some characters with space
             for sym in config.SYMBOLE_REMOVE_LIST:
                 messages = re.sub(sym, " ", messages)
@@ -330,33 +383,43 @@ class TwitterLikePredictor:
                 if no_key and len(msg) > 0:
                     # split:
                     new_messages.extend(jieba.lcut(msg, cut_all=True)) # split east asian
-            
+            # convert emojis:
+            if "unify-emoji" in config.ENABLE_EXTRA_CONVERSION:
+                new_messages = ["[emoji]" if emoji.get_emoji_regexp().search(msg) else msg for msg in new_messages]
+            # by anaylsis, we found significant correlation in time, user_id ..., and try emphasis by repeating the tokens
             # Let's convert time and other correlation into word as well!
             time_str = pd_data["created_at"][i]
             time_str = time_str.split(" ")
             date_ = datetime.datetime.strptime(time_str[0], "%Y-%m-%d")
             time_ = datetime.datetime.strptime(time_str[1], "%H:%M:%S")
-            descriptive_str = [
+            descriptive_str = []
+            time_str_set = [
                 # time related:
                 "[year:{}]".format(date_.year),
                 "[month:{}]".format(date_.month),
                 "[day:{}]".format(date_.day),
                 "[hour:{}]".format(time_.hour),
-                "[zone:{}]".format(time_str[2])
+                "[zone:{}]".format(time_str[2]),
             ]
+            descriptive_str.extend(time_str_set * 5) 
             # existance of other placeholders
+            placeholders_str = []
             if (not pd.isna(pd_data["place"][i])):
-                descriptive_str.append("[exist:place]")
+                placeholders_str.append("[exist:place]")
             if (not pd.isna(pd_data["quote_url"][i])):
-                descriptive_str.append("[exist:quote_url]")
+                placeholders_str.append("[exist:quote_url]")
             if (not pd.isna(pd_data["thumbnail"][i])):
-                descriptive_str.append("[exist:thumbnail]")
+                placeholders_str.append("[exist:thumbnail]")
             if (len(pd_data["reply_to"][i]) > 0):
-                descriptive_str.append("[exist:reply:to]")
+                placeholders_str.append("[exist:reply:to]")
+            descriptive_str.extend(placeholders_str)
+            # include langage
+            descriptive_str.append("[lang:{}]".format(pd_data['language'][i]))
             # include hashtags: (should already be inside the tweet, but let's emphasize it by repeating)
             descriptive_str.extend(literal_eval(pd_data['hashtags'][i]))
-            # include user_id
-            descriptive_str.append("[user:{}]".format(pd_data['user_id'][i]))
+            # include user_id (emphasize x10)
+            descriptive_str.extend(["[user:{}]".format(pd_data['user_id'][i])] * 10)
+            
             # extend messages
             new_messages.extend(descriptive_str)
             # append to normalized tweet data
@@ -377,8 +440,8 @@ class TwitterLikePredictor:
             self.model = BOW_ModuleV2(self.NUM_LABELS, self.VOCAB_SIZE, d_hidden=self.config.D_HIDDEN)
         elif version == "v3":
             self.model = BOW_ModuleV3(self.NUM_LABELS, self.VOCAB_SIZE, d_hidden=self.config.D_HIDDEN)
-        elif version == "v4":
-            self.model = BOW_ModuleV4(self.NUM_LABELS, self.VOCAB_SIZE, d_hidden=self.config.D_HIDDEN)
+        elif version == "v2-drop":
+            self.model = BOW_ModuleV2Drop(self.NUM_LABELS, self.VOCAB_SIZE, d_hidden=self.config.D_HIDDEN)
         else:
             self.model = BOW_Module(self.NUM_LABELS, self.VOCAB_SIZE)
 
@@ -450,7 +513,9 @@ class TwitterLikePredictor:
 
     def _generate_bow_dictionary(
         self,
-        data
+        data,
+        n_top_features = None,
+        n_min_variance = None,
     ):
         for sent, y in data:
             for word in sent:
@@ -460,6 +525,27 @@ class TwitterLikePredictor:
                 else:
                     self.word_count[word][y] += 1
         self.VOCAB_SIZE = len(self.word_to_ix)
+        # sort tokens based on the variance:
+        self.word_count_top_features = sorted(self.word_count.items(), key=lambda x:-np.var(x[1]))
+        # Feature reduction
+        if n_min_variance is not None:
+            self._print("Filter Requsted: var:{}".format(n_min_variance))
+            # filter by variance:
+            self.word_count_top_features = [x for x in self.word_count_top_features if np.var(x[1]) >= n_min_variance]
+            # sample top bag of words
+            self.word_to_ix = {}
+            for word, count in self.word_count_top_features:
+                self.word_to_ix[word] = len(self.word_to_ix)
+            self.VOCAB_SIZE = len(self.word_to_ix)
+
+        if n_top_features is not None:
+            self._print("Reduction Requsted: {}->{}".format(self.VOCAB_SIZE, n_top_features))
+            # sample top bag of words
+            self.word_count_top_features = self.word_count_top_features[:n_top_features]
+            self.word_to_ix = {}
+            for word in self.word_count_top_features:
+                self.word_to_ix[word[0]] = len(self.word_to_ix)
+            self.VOCAB_SIZE = len(self.word_to_ix)
     
     def make_bow_idx_array(self, sentence):
         vec = []
@@ -566,12 +652,21 @@ class TwitterLikePredictor:
                 # early sampling, save model that meets minimum threshold
                 self._print("> [Minimum Goal Reached] Attempt to predict, with {}>={}:".format(val_acc, sample_threshold))
                 tag = "autosave-e:{}".format(epoch)
-                pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag=tag)
+                df_pred = TLP_Engine.predict(tag=tag)
                 self.save_model(tag=tag)
+                sample_threshold = val_acc # keep recording for better ones
             
-            if (n_accuracy_drops >= 3):
-                self._print("> Early Stopping due to accuracy drops in last 3 iterations!")
-                break
+            elif (self.config.N_EARLY_STOPPING_NDROPS is None and np.mod(epoch, 10) == 0): 
+                # fixed sampling per 10 epoch
+                self._print("> [Per 10 epoch Auto-sampling] {}:".format(val_acc))
+                tag = "autosave-per10-e:{}".format(epoch)
+                df_pred = TLP_Engine.predict(tag=tag)
+                # self.save_model(tag=tag)
+            
+            if self.config.N_EARLY_STOPPING_NDROPS is not None:
+                if (n_accuracy_drops >= self.config.N_EARLY_STOPPING_NDROPS):
+                    self._print("> Early Stopping due to accuracy drops in last {} iterations!".format(self.config.N_EARLY_STOPPING_NDROPS))
+                    break
 
         self._print("End of Program")
 
@@ -586,31 +681,38 @@ class TwitterLikePredictor:
         self.save_model(tag="final")
         return report_
     
-    def predict(self, pd_data, tag=None):
-        # pre-process:
-        self._print("Pre-processing Test Dataset ...")
-        path_lite = os.path.join(self.folder_dict["processed_data"], 'preprocessed-lite-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
-        path = os.path.join(self.folder_dict["processed_data"], 'preprocessed-idx-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
-        if os.path.exists(path) and not self.config.FORCE_REBUILD:
-            self._print("Loading Pre-Processed Test Dataset From {}".format(path))
-            pd_data_processed = pd.read_csv(path)
+    def predict(self, pd_data=None, tag=None):
+        if pd_data is None:
+            pd_data_processed = self.final_testing_dataset
         else:
-            pd_data_processed = self.generate_tweet_message_normalized_column(
-                pd_data = pd_data, config = self.config
-            )
-            self.training_dataset.to_csv(path_lite)
-            self._print("Pre-Processed Test Dataset (Lite) Saved @ {}".format(path_lite))
-            pd_data_processed = self.generate_tweet_message_normalized_column_converted(
-                pd_data = pd_data_processed
-            )
-            self._print("Processed Test Dataset Saved @ {}".format(path))
-            self.training_dataset.to_csv(path)
+            raise ValueError("Feature Disabled, uncomment to predict other materials")
+            # pre-process:
+            # self._print("Pre-processing Test Dataset ...")
+            # path_lite = os.path.join(self.folder_dict["processed_data"], 'preprocessed-lite-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
+            # path = os.path.join(self.folder_dict["processed_data"], 'preprocessed-idx-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
+            # if os.path.exists(path) and not self.config.FORCE_REBUILD:
+            #     self._print("Loading Pre-Processed Test Dataset From {}".format(path))
+            #     pd_data_processed = pd.read_csv(path)
+            # else:
+            #     pd_data_processed = self.generate_tweet_message_normalized_column(
+            #         pd_data = pd_data, config = self.config
+            #     )
+            #     pd_data_processed.to_csv(path_lite)
+            #     self._print("Pre-Processed Test Dataset (Lite) Saved @ {}".format(path_lite))
+            #     pd_data_processed = self.generate_tweet_message_normalized_column_converted(
+            #         pd_data = pd_data_processed
+            #     )
+            #     pd_data_processed.to_csv(path)
+            #     self._print("Processed Test Dataset Saved @ {}".format(path))
         # prediction:
         self._print("Predicting ...")
         y_pred = []
         with torch.no_grad(): # Not training!
-            for x in TEST_DATA_X["norm-tweet-bow-idx-array"]:
-                bow_vec = self.convert_bow_idx_array_2_vector(x)
+            for x in pd_data_processed["norm-tweet-bow-idx-array"]:
+                if self.if_read_from_file:
+                    bow_vec = self.convert_bow_idx_array_2_vector(literal_eval(x))
+                else:
+                    bow_vec = self.convert_bow_idx_array_2_vector(x)
                 if self.config.USE_GPU:
                     bow_vec = bow_vec.to(self.device)
                 log_probs = self.model(bow_vec)
@@ -624,7 +726,7 @@ class TwitterLikePredictor:
             self._print("Prediction of the Test Dataset Saved @ {}".format(path))
             df_pred.to_csv(path, index_label="id")
 
-        return pd_data_processed, df_pred
+        return df_pred
 
     def save_model(self, tag):
         torch.save(self.model.state_dict(), os.path.join(self.folder_dict["models"], "model-{}-{}.pt".format(self.config.MODEL_TAG, tag)))
@@ -677,65 +779,229 @@ class TwitterLikePredictor:
 # -------------------------------- MODEL AUTOMATION -------------------------------- %% #
 """
 We will try to train possible models and choose the best model
+Note: Local Validation is not representitive and deviates from test, so its a sole reference how well it might be.
 """
 # # Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
 DICT_OF_CONFIG = {
-    "with-username": TwitterLikePredictor.PredictorConfiguration(
-        MODEL_TAG             = "trial-3",
-        BOW_TOTAL_NUM_EPOCHS  = 50,
+    # WIP: 
+    # "dev-1-emphasize2": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "latest-v1-emphasize2",
+    #     PRE_PROCESS_TAG       = "latest-v1-emphasize2",
+    #     BOW_TOTAL_NUM_EPOCHS  = 200,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.99,
+    #     MODEL_VERSION         = "v",
+    #     FORCE_REBUILD         = True,
+    #     N_EARLY_STOPPING_NDROPS = None, # no early stopping, full 80 iterations
+    # ), 
+    # "dev-1-emphasize3": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "latest-v1-emphasize3",
+    #     PRE_PROCESS_TAG       = "latest-v1-emphasize3",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     MODEL_VERSION         = "v"
+    # ), 
+    "dev-1-emphasize1": TwitterLikePredictor.PredictorConfiguration(
+        MODEL_TAG             = "latest-v1-emphasize",
+        PRE_PROCESS_TAG       = "latest-v1-emphasize",
+        BOW_TOTAL_NUM_EPOCHS  = 80,
         LEARNING_RATE         = 0.0001,
+        PERCENT_TRAINING_SET  = 0.90,
         MODEL_VERSION         = "v"
-    ), #= Comment:  (max:0.4958?) (ep30: 0.4933 ==>  0.48829)
-    "trial-1": TwitterLikePredictor.PredictorConfiguration(
-        MODEL_TAG             = "trial-2",
-        BOW_TOTAL_NUM_EPOCHS  = 50,
-        LEARNING_RATE         = 0.0001,
-        MODEL_VERSION         = "v"
-    ), #= Comment:  (max:0.4953?) (ep30: 0.4933 ==>  0.48829)
+    ), # [Best Best so far, 0.521 on Kaggle  @ epoch 80 | TEST ACC: 0.7893] **************************** #
+    #
+    # |========== Retired Models:============================================================= |
+    # "dev-1-emphasize3-all": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "latest-v1-emphasize3-all",
+    #     PRE_PROCESS_TAG       = "latest-v1-emphasize3-all",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     MODEL_VERSION         = "v"
+    # ),  => collecting testing data features seems to overwhelm the model, might work better with variance sampling
+    #= Comment:  (max:0.4969?) => 0.49163  [KING MODEL!] @ epoch:32
+    # "dev-1-nn2-drop": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "min-variance-1-top10k",
+    #     PRE_PROCESS_TAG       = "min-variance-1-top10k",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     D_HIDDEN              = 4000,
+    #     N_MIN_VARIANCE        = 1.0,
+    #     N_TOP_FEATURES        = 10000,
+    #     MODEL_VERSION         = "v2-drop"
+    # ), 
+    # "dev-1-nn2-2k": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "min-variance-top2k",
+    #     PRE_PROCESS_TAG       = "min-variance-top2k",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     D_HIDDEN              = 4000,
+    #     N_TOP_FEATURES        = 2000,
+    #     MODEL_VERSION         = "v2"
+    # ), 
+    # "dev-1-2k": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "min-variance-top2k",
+    #     PRE_PROCESS_TAG       = "min-variance-top2k",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     N_MIN_VARIANCE        = 1.0,
+    #     N_TOP_FEATURES        = 2000,
+    #     MODEL_VERSION         = "v"
+    # ), 
+    # "dev-1-nn2": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "min-variance-1-top10k",
+    #     PRE_PROCESS_TAG       = "min-variance-1-top10k",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     D_HIDDEN              = 4000,
+    #     N_MIN_VARIANCE        = 1.0,
+    #     N_TOP_FEATURES        = 10000,
+    #     MODEL_VERSION         = "v2"
+    # ), 
+    # "dev-1-nn3": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "min-variance-1-top10k",
+    #     PRE_PROCESS_TAG       = "min-variance-1-top10k",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     D_HIDDEN              = 4000,
+    #     N_MIN_VARIANCE        = 1.0,
+    #     N_TOP_FEATURES        = 10000,
+    #     MODEL_VERSION         = "v3"
+    # ), 
+    # "dev-1": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "min-variance-1-top10k",
+    #     PRE_PROCESS_TAG       = "min-variance-1-top10k",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     N_MIN_VARIANCE        = 1.0,
+    #     N_TOP_FEATURES        = 10000,
+    #     MODEL_VERSION         = "v"
+    # ), 
+    # "dev-2": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "min-variance-1-top5k",
+    #     PRE_PROCESS_TAG       = "min-variance-1-top5k",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     N_TOP_FEATURES        = 5000,
+    #     MODEL_VERSION         = "v"
+    # ), 
+    #
+    # "test-99pa-unify-emoji": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "top-10k-all-unify-emoji",
+    #     PRE_PROCESS_TAG       = "top-10k-all-unify-emoji",
+    #     BOW_TOTAL_NUM_EPOCHS  = 40,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.99,
+    #     MODEL_VERSION         = "v",
+    #     N_TOP_FEATURES        = 10000, # lets pick top 10k most appeared features
+    #     ENABLE_EXTRA_CONVERSION = ["unify-emoji"],
+    # ), #= Comment:   (max:?)
+    # "test-nn-unify-emoji": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "top-10k-all-unify-emoji",
+    #     PRE_PROCESS_TAG       = "top-10k-all-unify-emoji",
+    #     BOW_TOTAL_NUM_EPOCHS  = 40,
+    #     D_HIDDEN              = 2000,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     MODEL_VERSION         = "v2",
+    #     N_TOP_FEATURES        = 10000, # lets pick top 10k most appeared features
+    #     ENABLE_EXTRA_CONVERSION = ["unify-emoji"],
+    # ), #= Comment:   (max:?)
+    # "test-99pa": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "top-10k-all",
+    #     PRE_PROCESS_TAG       = "top-10k-all",
+    #     BOW_TOTAL_NUM_EPOCHS  = 40,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.99,
+    #     MODEL_VERSION         = "v",
+    #     N_TOP_FEATURES        = 10000 # lets pick top 10k most appeared features
+    # ), #= Comment:   (max:?)
+    # "test-nn": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "neural-network",
+    #     PRE_PROCESS_TAG       = "top-10k-all",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     D_HIDDEN              = 1000,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.99,
+    #     MODEL_VERSION         = "v2",
+    #     N_TOP_FEATURES        = 10000 # lets pick top 10k most appeared features
+    # ), #= Comment:  (max:0.48805)
+    # "test-1": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "top-10k-all",
+    #     PRE_PROCESS_TAG       = "top-10k-all",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     MODEL_VERSION         = "v",
+    #     N_TOP_FEATURES        = 10000 # lets pick top 10k most appeared features
+    # ), #= Comment:  (max:0.49687)
+    # "test-3": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "no-tweet",
+    #     PRE_PROCESS_TAG       = "no-tweet",
+    #     BOW_TOTAL_NUM_EPOCHS  = 80,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.90,
+    #     MODEL_VERSION         = "v"
+    # ), #= Comment:  (max:0.4628) stopped, =. but proved that tweet is not significantly improving => we neeed PCA or reduction on features
+    # "trial-2": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "3layer",
+    #     BOW_TOTAL_NUM_EPOCHS  = 50,
+    #     D_HIDDEN              = 4000,
+    #     LEARNING_RATE         = 0.0001,
+    #     MODEL_VERSION         = "v3"
+    # ), => TODO: to be tested with deeper layer
+    # "with-username": TwitterLikePredictor.PredictorConfiguration(
+    #     MODEL_TAG             = "trial-1",
+    #     BOW_TOTAL_NUM_EPOCHS  = 32,
+    #     LEARNING_RATE         = 0.0001,
+    #     PERCENT_TRAINING_SET  = 0.99,
+    #     MODEL_VERSION         = "v"
+    # ), #= Comment:  (max:0.4969?) => 0.49163  [KING MODEL!] @ epoch:32
     # "trial-1": TwitterLikePredictor.PredictorConfiguration(
-    #     MODEL_TAG             = "trail-1",
+    #     MODEL_TAG             = "trial-2",
+    #     BOW_TOTAL_NUM_EPOCHS  = 30,
     #     LEARNING_RATE         = 0.0001,
     #     MODEL_VERSION         = "v"
-    # ), #= Comment: <0.47 (less than the best)
-    # "trial-2": TwitterLikePredictor.PredictorConfiguration(
-    #     MODEL_TAG             = "trail-2",
-    #     BOW_TOTAL_NUM_EPOCHS  = 20,
-    #     D_HIDDEN              = 400,
-    #     MOMENTUM              = 0.8,
-    #     MODEL_VERSION         = "v2"
-    # ),
-    # "trial-2.1": TwitterLikePredictor.PredictorConfiguration(
-    #     MODEL_TAG             = "trail-2.1",
-    #     BOW_TOTAL_NUM_EPOCHS  = 50,
-    #     D_HIDDEN              = 1200,
-    #     LEARNING_RATE         = 0.0001,
-    #     MODEL_VERSION         = "v2"
-    # ), # => [slightly better]: 0.4696 => 0.46225 on Kaggle with epoch=6
+    # ), #= Comment:  (max:0.4953?) (ep30: 0.4933 ==>  0.48829)
 }
 
-min_threshold = 0.465
+min_threshold = 0.51
+THRESHOLD = min_threshold
 for name_, config_ in DICT_OF_CONFIG.items():
     print("================================ ================================ BEGIN:{} , Goal:{} =>".format(name_, min_threshold))
     # INIT ENGINE: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     TLP_Engine = TwitterLikePredictor(
-        pd_data_training=TRAIN_DATA, verbose=True, 
-        verbose_show_sample_language_parse=False, config=config_,
+        pd_data_training=TRAIN_DATA,
+        pd_data_testing=TEST_DATA_X,
+        verbose=True, 
+        verbose_show_sample_language_parse=False, 
+        config=config_,
         engine_name=name_
     )
 
     # TRAIN: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
-    report = TLP_Engine.train(gen_plot=True, sample_threshold=min_threshold)
+    report = TLP_Engine.train(gen_plot=True, sample_threshold=THRESHOLD)
     max_validation_acc = np.max(report.history["test_acc"])
     if max_validation_acc > min_threshold:
         print("\n>>>> Best Model So Far: {} \n".format(max_validation_acc))
         min_threshold = max_validation_acc # rise standard
 
     # PREDICTION: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
-    pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag="final")
+    df_pred = TLP_Engine.predict(tag="final")
 
 
 
 
+
+# %%
 
 # %% -------------------------------- SECTION BREAK LINE -------------------------------- %% #
 """
