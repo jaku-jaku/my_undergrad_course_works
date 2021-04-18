@@ -34,9 +34,11 @@ from icecream import ic
 
 import jieba # to split east-asian language to words
 
+## USER DEFINED:
+ABS_PATH = "/home/jx/JXProject/Github/UW__4B_Individual_Works/CS 480/Kaggle" # Define ur absolute path here
+
 ## Custom Files:
 def abspath(relative_path):
-    ABS_PATH = "/home/jx/JXProject/Github/UW__4B_Individual_Works/CS 480/Kaggle"
     return os.path.join(ABS_PATH, relative_path)
 
 module_path = os.path.abspath(os.path.join('..'))
@@ -157,10 +159,9 @@ class TwitterLikePredictor:
     class PredictorConfiguration:
         Y_TAG                : str              = "likes_count"
         USE_GPU              : bool             = True
-        OUTPUT_FOLDER        : str              = abspath("output")
         MODEL_TAG            : str              = "default"
         # tweet pre-processing: 
-        PRE_PROCESS_TAG      : str              = "default"
+        PRE_PROCESS_TAG      : str              = "default-with-username"
         DELIMITER_SET        : str              = "; |, |、|。| "
         SYMBOLE_REMOVE_LIST  : str              = field(default_factory=lambda: ["\[", "\]", "\(", "\)"])
         KEYS_TO_REMOVE_LIST  : List             = field(default_factory=lambda: ["http", "arXiv", "https"])
@@ -180,10 +181,15 @@ class TwitterLikePredictor:
     def _print(self, content):
         if self.verbose:
             print("[TLP] ", content)
+            # output to file
+        with open(os.path.join(self.folder_dict["output"],"TLP_log.txt"), "a") as log_file:
+            log_file.write("\n")
+            log_file.write(content)
 
     def __init__(
         self, 
         pd_data_training,
+        engine_name,
         verbose,
         verbose_show_sample_language_parse,
         config: PredictorConfiguration
@@ -191,17 +197,30 @@ class TwitterLikePredictor:
         t_init = time.time()
         self.config = config
         self.verbose = verbose
-        # gen folder:
-        jx_lib.create_folder(self.config.OUTPUT_FOLDER)
-        jx_lib.create_folder(abspath("processed_data"))
+        # autogen folder:
+        self.folder_dict = {
+            "processed_data": "processed_data", # store processed dataset data
+            "output-dir"    : "output",
+            "output"        : "output/{}".format(engine_name),
+            "y-pred"        : None,
+            "models"        : None,
+            "analysis"      : None
+        }
+        for name_ , folder_name_ in self.folder_dict.items():
+            if folder_name_ is not None:
+                abs_path = abspath(folder_name_)
+            else:
+                abs_path = abspath("{}/{}/{}".format("output", engine_name, name_))
+            jx_lib.create_folder(abs_path)
+            self.folder_dict[name_] = abs_path
         # Prepare Hardware ==== ==== ==== ==== ==== ==== ==== #
         self._print("Prepare Hardware")
         if self.config.USE_GPU:
             self.device = self.load_device()
         # Pre-processing Dataset ==== ==== ==== ==== ==== ==== ==== #
-        path_lite = abspath('processed_data/preprocessed-lite-train-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
-        path_preprocessed = abspath('processed_data/preprocessed-idx-train-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
-        path_dict = abspath('processed_data/bow-dict-[{}].json'.format(self.config.PRE_PROCESS_TAG))
+        path_lite = os.path.join(self.folder_dict["processed_data"], 'preprocessed-lite-train-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
+        path_preprocessed = os.path.join(self.folder_dict["processed_data"], 'preprocessed-idx-train-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
+        path_dict = os.path.join(self.folder_dict["processed_data"], 'bow-dict-[{}].json'.format(self.config.PRE_PROCESS_TAG))
         if os.path.exists(path_preprocessed) and not self.config.FORCE_REBUILD:
             # TODO: file size to large
             self.training_dataset = pd.read_csv(path_preprocessed)
@@ -289,7 +308,8 @@ class TwitterLikePredictor:
         MAX_LENGTH, d = pd_data.shape
         tweet_data = []
         for i in range(MAX_LENGTH):
-            messages = pd_data['tweet'][i]
+            # include name and tweet for token analysis
+            messages = pd_data['tweet'][i] + str(pd_data['name'][i])
             # remove some characters with space
             for sym in config.SYMBOLE_REMOVE_LIST:
                 messages = re.sub(sym, " ", messages)
@@ -320,6 +340,7 @@ class TwitterLikePredictor:
                 # time related:
                 "[year:{}]".format(date_.year),
                 "[month:{}]".format(date_.month),
+                "[day:{}]".format(date_.day),
                 "[hour:{}]".format(time_.hour),
                 "[zone:{}]".format(time_str[2])
             ]
@@ -334,6 +355,8 @@ class TwitterLikePredictor:
                 descriptive_str.append("[exist:reply:to]")
             # include hashtags: (should already be inside the tweet, but let's emphasize it by repeating)
             descriptive_str.extend(literal_eval(pd_data['hashtags'][i]))
+            # include user_id
+            descriptive_str.append("[user:{}]".format(pd_data['user_id'][i]))
             # extend messages
             new_messages.extend(descriptive_str)
             # append to normalized tweet data
@@ -528,7 +551,7 @@ class TwitterLikePredictor:
                 n_accuracy_drops = 0
 
             # Log ------:
-            report_.append(
+            self._print(report_.append(
                 epoch         = epoch,
                 train_loss    = train_loss_sum / train_n,
                 train_acc     = train_acc_sum / train_n,
@@ -537,8 +560,7 @@ class TwitterLikePredictor:
                 test_acc      = val_acc,
                 test_time     = val_ellapse,
                 learning_rate = 0,
-                verbose       = True
-            )
+            ))
 
             if (val_acc >= sample_threshold): 
                 # early sampling, save model that meets minimum threshold
@@ -557,7 +579,7 @@ class TwitterLikePredictor:
         if gen_plot:
             report_.output_progress_plot(
                 figsize       = (15,12),
-                OUT_DIR       = self.config.OUTPUT_FOLDER,
+                OUT_DIR       = self.folder_dict["analysis"],
                 tag           = self.config.MODEL_TAG
             )
         # SAVE Model:
@@ -567,8 +589,8 @@ class TwitterLikePredictor:
     def predict(self, pd_data, tag=None):
         # pre-process:
         self._print("Pre-processing Test Dataset ...")
-        path_lite = abspath('processed_data/preprocessed-lite-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
-        path = abspath('processed_data/preprocessed-idx-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
+        path_lite = os.path.join(self.folder_dict["processed_data"], 'preprocessed-lite-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
+        path = os.path.join(self.folder_dict["processed_data"], 'preprocessed-idx-test-[{}].csv'.format(self.config.PRE_PROCESS_TAG))
         if os.path.exists(path) and not self.config.FORCE_REBUILD:
             self._print("Loading Pre-Processed Test Dataset From {}".format(path))
             pd_data_processed = pd.read_csv(path)
@@ -598,14 +620,14 @@ class TwitterLikePredictor:
         df_pred = pd.DataFrame({'label':[y.tolist()[0] for y in y_pred]})
         # save to file:
         if tag is not None:
-            path = abspath('processed_data/test_y_pred-[{}-{}].csv'.format(self.config.MODEL_TAG, tag))
+            path = os.path.join(self.folder_dict["y-pred"], 'test_y_pred-[{}-{}].csv'.format(self.config.MODEL_TAG, tag))
             self._print("Prediction of the Test Dataset Saved @ {}".format(path))
             df_pred.to_csv(path, index_label="id")
 
         return pd_data_processed, df_pred
 
     def save_model(self, tag):
-        torch.save(self.model.state_dict(), abspath("output/model-{}-{}.pt".format(self.config.MODEL_TAG, tag)))
+        torch.save(self.model.state_dict(), os.path.join(self.folder_dict["models"], "model-{}-{}.pt".format(self.config.MODEL_TAG, tag)))
 
 
 # USER PARAMS: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
@@ -658,13 +680,18 @@ We will try to train possible models and choose the best model
 """
 # # Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
 DICT_OF_CONFIG = {
-    "trial-1": TwitterLikePredictor.PredictorConfiguration(
-        MODEL_TAG             = "trial-1",
+    "with-username": TwitterLikePredictor.PredictorConfiguration(
+        MODEL_TAG             = "trial-3",
         BOW_TOTAL_NUM_EPOCHS  = 50,
-        D_HIDDEN              = 800,
         LEARNING_RATE         = 0.0001,
-        MODEL_VERSION         = "v2"
-    ), #= Comment: <0.47 (less than the best)
+        MODEL_VERSION         = "v"
+    ), #= Comment:  (max:0.4958?) (ep30: 0.4933 ==>  0.48829)
+    "trial-1": TwitterLikePredictor.PredictorConfiguration(
+        MODEL_TAG             = "trial-2",
+        BOW_TOTAL_NUM_EPOCHS  = 50,
+        LEARNING_RATE         = 0.0001,
+        MODEL_VERSION         = "v"
+    ), #= Comment:  (max:0.4953?) (ep30: 0.4933 ==>  0.48829)
     # "trial-1": TwitterLikePredictor.PredictorConfiguration(
     #     MODEL_TAG             = "trail-1",
     #     LEARNING_RATE         = 0.0001,
@@ -692,7 +719,8 @@ for name_, config_ in DICT_OF_CONFIG.items():
     # INIT ENGINE: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
     TLP_Engine = TwitterLikePredictor(
         pd_data_training=TRAIN_DATA, verbose=True, 
-        verbose_show_sample_language_parse=False, config=config_
+        verbose_show_sample_language_parse=False, config=config_,
+        engine_name=name_
     )
 
     # TRAIN: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
@@ -703,7 +731,7 @@ for name_, config_ in DICT_OF_CONFIG.items():
         min_threshold = max_validation_acc # rise standard
 
     # PREDICTION: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
-    pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag=name_)
+    pd_data_processed, df_pred = TLP_Engine.predict(pd_data=TEST_DATA_X, tag="final")
 
 
 

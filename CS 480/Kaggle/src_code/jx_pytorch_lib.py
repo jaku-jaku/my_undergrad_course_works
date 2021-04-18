@@ -74,7 +74,6 @@ class ProgressReport:
         test_acc,
         test_time,
         learning_rate,
-        verbose = True,
     ):
         self.history["epoch"]         .append(epoch        )
         self.history["train_loss"]    .append(train_loss   )
@@ -84,10 +83,9 @@ class ProgressReport:
         self.history["test_acc"]      .append(test_acc     )
         self.history["test_time"]     .append(test_time    )
         self.history["learning_rate"] .append(learning_rate)
-        if verbose:
-            print('    epoch {} > Training: [LOSS: {:.4f} | ACC: {:.4f}] | Testing: [LOSS: {:.4f} | ACC: {:.4f}] Ellapsed: {:.2f} s | rate:{:.5f}'.format(
+        return ('    epoch {} > Training: [LOSS: {:.4f} | ACC: {:.4f}] | Testing: [LOSS: {:.4f} | ACC: {:.4f}] Ellapsed: {:.2f} s | rate:{:.5f}'.format(
                 epoch + 1, train_loss, train_acc, test_loss, test_acc, train_time, test_time, learning_rate
-            ))
+        ))
 
 
     def output_progress_plot(
