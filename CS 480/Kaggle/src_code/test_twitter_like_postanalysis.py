@@ -70,10 +70,10 @@ def make_target(label):
 # from main_twitter_like import BOW_Module
 # %% LOAD DATASET: ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- #
 # path:
-PATH_TRAIN_DATA_PROCESSED = abspath("processed_data/preprocessed-idx-train-[latest-v1-emphasize].csv")
-PATH_MODEL = abspath("output/dev-1-emphasize/models/model-latest-v1-emphasize-final.pt")
-PATH_ANAYSIS = abspath("output/dev-1-emphasize/analysis")
-PATH_DICT = abspath("processed_data/bow-dict-[latest-v1-emphasize].json")
+PATH_TRAIN_DATA_PROCESSED = abspath("processed_data/preprocessed-idx-train-[latest-v1-emphasize-rebuild].csv")
+PATH_MODEL = abspath("output/dev-1-final-run2/models/model-latest-v1-emphasize-rebuild-final.pt")
+PATH_ANAYSIS = abspath("output/dev-1-final-run2/analysis")
+PATH_DICT = abspath("processed_data/bow-dict-[latest-v1-emphasize-rebuild].json")
 # import data
 TRAIN_DATA_PROCESSED = pd.read_csv(PATH_TRAIN_DATA_PROCESSED)
 # import dictionary
