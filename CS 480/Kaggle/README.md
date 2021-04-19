@@ -9,4 +9,5 @@
 - uncomment analysis inside `main_twitter_like.py` to see model effectiveness
 - use `twitter_thumbnail_downloader.ipynb` to download images (WARNING: > 2G) => not used in this submission
 - `jx_pytorch_lib.py` and `jx_lib.py` are two libs created and used throughout all assignments
+- use `test_twitter_like_postanalysis.py` to use the saved models and generate plots related to the model performance
 
