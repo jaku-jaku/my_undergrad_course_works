@@ -360,7 +360,8 @@ class TwitterLikePredictor:
         tweet_data = []
         for i in range(MAX_LENGTH):
             # include name and tweet for token analysis
-            messages = str(pd_data['name'][i]) 
+            messages = str(pd_data['name'][i])
+            len_tweet = len(pd_data['tweet'][i])
             if "no-tweet" not in config.ENABLE_EXTRA_CONVERSION:
                 messages = " " + pd_data['tweet'][i]
             # remove some characters with space
@@ -412,16 +413,18 @@ class TwitterLikePredictor:
                 placeholders_str.append("[exist:thumbnail]")
             
             # not effective based on analysis
-            # n_replyto = len(literal_eval(pd_data["reply_to"][i]))
-            # placeholders_str.extend(["[exist:reply:to]"] * n_replyto)
-            
+            # n_replyto = len(literal_eval(pd_data["reply_to"][i])) > 0
+            # placeholders_str.extend(["[exist:reply:to]"] * n_replyto)     
             descriptive_str.extend(placeholders_str)
+            
+            # depends on tweet length 0~30       
+            placeholders_str.append("[length:tweet] {}".format(int(len_tweet/10))) 
             # include langage
-            # descriptive_str.append("[lang:{}]".format(pd_data['language'][i]))
+            descriptive_str.append("[lang:{}]".format(pd_data['language'][i]))
             # include hashtags: (should already be inside the tweet, but let's emphasize it by repeating)
             descriptive_str.extend(literal_eval(pd_data['hashtags'][i]))
             # include user_id (emphasize x10)
-            descriptive_str.extend(["[user:{}]".format(pd_data['user_id'][i])] * 5)
+            descriptive_str.extend(["[user:{}]".format(pd_data['user_id'][i])] * 10)
             
             # extend messages
             new_messages.extend(descriptive_str)
@@ -791,16 +794,15 @@ Note: Local Validation is not representitive and deviates from test, so its a so
 # # Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
 DICT_OF_CONFIG = {
     # WIP: 
-    "dev-1-tuning-2": TwitterLikePredictor.PredictorConfiguration(
-        MODEL_TAG             = "latest-v1-emphasize-3",
-        PRE_PROCESS_TAG       = "latest-v1-emphasize-3",
-        BOW_TOTAL_NUM_EPOCHS  = 80,
-        LEARNING_RATE         = 0.0001,
+    "dev-1-final-run2": TwitterLikePredictor.PredictorConfiguration(
+        MODEL_TAG             = "latest-v1-emphasize-rebuild",
+        PRE_PROCESS_TAG       = "latest-v1-emphasize-rebuild",
+        BOW_TOTAL_NUM_EPOCHS  = 160,
+        LEARNING_RATE         = 0.00005,
         PERCENT_TRAINING_SET  = 0.90,
-        # FORCE_REBUILD         = True,
-        # SHUFFLE_TRAINING      = True,
-        MODEL_VERSION         = "v"
-    ), # [Best Best so far, 0.521 on Kaggle  @ epoch 80 | TEST ACC: 0.7893] **************************** #
+        MODEL_VERSION         = "v",
+        N_EARLY_STOPPING_NDROPS = None, # no early stopping, full 80 iterations
+    ), # [Best Best so far, 0.52245 on Kaggle  @ epoch 80 | TEST ACC: 0.7893] **************************** #
     # "dev-1-adam": TwitterLikePredictor.PredictorConfiguration(
     #     MODEL_TAG             = "latest-v1-emphasize-2",
     #     PRE_PROCESS_TAG       = "latest-v1-emphasize-2",
