@@ -93,11 +93,12 @@ class BOW_Module(nn.Module):
     def __init__(self, num_labels, vocab_size):
         super(BOW_Module, self).__init__()
         # the parameters of the affine mapping.
+        self.drop = nn.Dropout(0.2)
         self.linear = nn.Linear(vocab_size, num_labels)
 
     def forward(self, bow_vec):
         # input => Linear => softmax
-        return F.log_softmax(self.linear(bow_vec), dim=1)
+        return F.log_softmax(self.linear(self.drop(bow_vec)), dim=1)
 
 class BOW_ModuleV2(nn.Module):
     def __init__(self, num_labels, vocab_size, 
@@ -802,10 +803,10 @@ Note: Local Validation is not representitive and deviates from test, so its a so
 # # Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
 DICT_OF_CONFIG = {
     # WIP: 
-    "dev-1-final-run3": TwitterLikePredictor.PredictorConfiguration(
-        MODEL_TAG             = "latest-v1-emphasize-rebuild-3",
+    "dev-1-final-run5-dropout": TwitterLikePredictor.PredictorConfiguration(
+        MODEL_TAG             = "latest-v1-emphasize-rebuild-3-dropout",
         PRE_PROCESS_TAG       = "latest-v1-emphasize-rebuild-3",
-        BOW_TOTAL_NUM_EPOCHS  = 50,
+        BOW_TOTAL_NUM_EPOCHS  = 150,
         LEARNING_RATE         = 0.0005,
         PERCENT_TRAINING_SET  = None,
         SHUFFLE_TRAINING      = True,
