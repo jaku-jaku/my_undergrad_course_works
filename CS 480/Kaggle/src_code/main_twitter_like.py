@@ -418,13 +418,13 @@ class TwitterLikePredictor:
             descriptive_str.extend(placeholders_str)
             
             # depends on tweet length 0~30       
-            placeholders_str.append("[length:tweet] {}".format(int(len_tweet/10))) 
+            placeholders_str.append("[length:tweet:{}]".format(int(len_tweet))) 
             # include langage
             descriptive_str.append("[lang:{}]".format(pd_data['language'][i]))
             # include hashtags: (should already be inside the tweet, but let's emphasize it by repeating)
             descriptive_str.extend(literal_eval(pd_data['hashtags'][i]))
             # include user_id (emphasize x10)
-            descriptive_str.extend(["[user:{}]".format(pd_data['user_id'][i])] * 10)
+            descriptive_str.extend(["[user:{}]".format(pd_data['user_id'][i])] * 20)
             
             # extend messages
             new_messages.extend(descriptive_str)
@@ -500,8 +500,12 @@ class TwitterLikePredictor:
             if config.SHUFFLE_TRAINING:
                 pd_data = pd_data.sample(frac = 1)
             
-            N_TRAIN = int(len(pd_data) * config.PERCENT_TRAINING_SET)
-            N_TEST = len(pd_data) - N_TRAIN
+            if config.PERCENT_TRAINING_SET is None:
+                N_TRAIN = len(pd_data)
+                N_TEST = 0
+            else:
+                N_TRAIN = int(len(pd_data) * config.PERCENT_TRAINING_SET)
+                N_TEST = len(pd_data) - N_TRAIN
             # let's split data
             train_id,pytorch_data_train = TwitterLikePredictor.pandas2pytorch(
                 pd_data = pd_data,
@@ -619,24 +623,28 @@ class TwitterLikePredictor:
     
             # TEST -----------------------------:
             i, n = 0, len(self.pytorch_data_eval_preprocessed)
-            with torch.no_grad(): # Not training!
-                for instance, label in self.pytorch_data_eval_preprocessed:
-                    i += 1
-                    print("\r > Validating [{}/{}]".format(i, n),  end='')
-                    # bow_vec = self.make_bow_vector(instance)
-                    # target = self.make_target(label)
-                    bow_vec = self.convert_bow_idx_array_2_vector(instance)
-                    target =  self.make_target(label)
-                    if self.config.USE_GPU:
-                        bow_vec = bow_vec.to(self.device)
-                        target = target.to(self.device)
-                    log_probs = self.model(bow_vec)
-                    # Log summay:
-                    loss = loss_(log_probs, target)
-                    val_loss_sum += loss.item()
-                    val_acc_sum += (log_probs.argmax(dim=1) == label).sum().item()
-                    val_n += 1
-        
+            if n > 0:
+                with torch.no_grad(): # Not training!
+                    for instance, label in self.pytorch_data_eval_preprocessed:
+                        i += 1
+                        print("\r > Validating [{}/{}]".format(i, n),  end='')
+                        # bow_vec = self.make_bow_vector(instance)
+                        # target = self.make_target(label)
+                        bow_vec = self.convert_bow_idx_array_2_vector(instance)
+                        target =  self.make_target(label)
+                        if self.config.USE_GPU:
+                            bow_vec = bow_vec.to(self.device)
+                            target = target.to(self.device)
+                        log_probs = self.model(bow_vec)
+                        # Log summay:
+                        loss = loss_(log_probs, target)
+                        val_loss_sum += loss.item()
+                        val_acc_sum += (log_probs.argmax(dim=1) == label).sum().item()
+                        val_n += 1
+            else:
+                val_n = 1
+                val_acc_sum = 0
+
             val_ellapse = time.time() - val_start
             print("\n",  end='')
 
@@ -794,15 +802,17 @@ Note: Local Validation is not representitive and deviates from test, so its a so
 # # Auto overnight training: ----- ----- ----- ----- ----- ----- ----- -----
 DICT_OF_CONFIG = {
     # WIP: 
-    "dev-1-final-run2": TwitterLikePredictor.PredictorConfiguration(
-        MODEL_TAG             = "latest-v1-emphasize-rebuild",
-        PRE_PROCESS_TAG       = "latest-v1-emphasize-rebuild",
-        BOW_TOTAL_NUM_EPOCHS  = 160,
-        LEARNING_RATE         = 0.00005,
-        PERCENT_TRAINING_SET  = 0.90,
+    "dev-1-final-run3": TwitterLikePredictor.PredictorConfiguration(
+        MODEL_TAG             = "latest-v1-emphasize-rebuild-3",
+        PRE_PROCESS_TAG       = "latest-v1-emphasize-rebuild-3",
+        BOW_TOTAL_NUM_EPOCHS  = 50,
+        LEARNING_RATE         = 0.0005,
+        PERCENT_TRAINING_SET  = None,
+        SHUFFLE_TRAINING      = True,
+        # FORCE_REBUILD         = True,
         MODEL_VERSION         = "v",
-        N_EARLY_STOPPING_NDROPS = None, # no early stopping, full 80 iterations
-    ), # [Best Best so far, 0.52245 on Kaggle  @ epoch 80 | TEST ACC: 0.7893] **************************** #
+        N_EARLY_STOPPING_NDROPS = None, # no early stopping
+    ), # [Best Best so far, 0.53057 on Kaggle  @ epoch 50 ] **************************** #
     # "dev-1-adam": TwitterLikePredictor.PredictorConfiguration(
     #     MODEL_TAG             = "latest-v1-emphasize-2",
     #     PRE_PROCESS_TAG       = "latest-v1-emphasize-2",
