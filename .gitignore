@@ -8,3 +8,12 @@ CS\ 480/A5\ Package/src_code/.ipynb_checkpoints/
 CS\ 480/A5\ Package/src_code/__pycache__/
 CS\ 480/A5\ Package/src_code/output/E3/**.pt
 CS\ 480/A5\ Package/src_code/__pychache__/
+CS\ 480/Kaggle/.ipynb_checkpoints/*
+CS\ 480/Kaggle/.ipynb_checkpoints/**
+CS\ 480/Kaggle/data/*
+CS\ 480/Kaggle/output-analysis/*
+CS\ 480/Kaggle/processed_data/*
+CS\ 480/Kaggle/output/*
+CS\ 480/Kaggle/archive/*
+CS\ 480/Kaggle/logs/*
+CS\ 480/Kaggle/src_code/__pycache__/*
